@@ -17,4 +17,13 @@ internal sealed class MembershipReader(AppDbContext db, IDateTimeProvider clock)
         var memberships = await db.Memberships.AsNoTracking().Where(m => m.MemberId == id).ToListAsync(ct);
         return MembershipStatus.Of(seasons, memberships, today);
     }
+
+    public async Task<IReadOnlyDictionary<string, MembershipStatus>> GetAllAsync(CancellationToken ct)
+    {
+        var seasons = await db.Seasons.AsNoTracking().ToListAsync(ct);
+        var today = SeasonRules.Today(clock.UtcNow);
+        return (await db.Memberships.AsNoTracking().ToListAsync(ct))
+            .GroupBy(m => m.MemberId)
+            .ToDictionary(g => g.Key.ToString(), g => MembershipStatus.Of(seasons, g.ToList(), today));
+    }
 }

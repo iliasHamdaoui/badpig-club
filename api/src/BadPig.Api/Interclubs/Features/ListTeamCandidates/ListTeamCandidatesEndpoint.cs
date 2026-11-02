@@ -20,7 +20,7 @@ public sealed class ListTeamCandidatesEndpoint(IHandler<ListTeamCandidatesReques
     /// <response code="404">No team with this identifier.</response>
     [HttpGet]
     [EndpointSummary("Lists the people who can be added to a team")]
-    [EndpointDescription("For the captain of the team (or the board), who picks the players: the active club members who are not in the team yet. Search on the names; sort on name; paginated.")]
+    [EndpointDescription("For the captain of the team (or the board), who picks the players: the active club members who do not play in any team of this season yet (a player belongs to a single team per season) and who are licensed with the club (a member licensed elsewhere plays for that club). Search on the names; sort on name; paginated.")]
     [ProducesResponseType<PagedResponse<ListTeamCandidatesItem>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]

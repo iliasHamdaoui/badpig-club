@@ -1,6 +1,7 @@
 using BadPig.Shared.Identity;
 using BadPig.Shared.Core;
 using BadPig.Shared.Persistence;
+using BadPig.Administration.Core;
 using BadPig.Interclubs.Core;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,8 @@ using Microsoft.EntityFrameworkCore;
 namespace BadPig.Interclubs.Features.ListTeamCandidates;
 
 /// <summary>The active club members who are not yet in the team; only its captain or the board can ask.</summary>
-internal sealed class ListTeamCandidatesHandler(IValidator<ListTeamCandidatesRequest> validator, InterclubAccess access, IIdentityProvider identity, AppDbContext db)
+internal sealed class ListTeamCandidatesHandler(IValidator<ListTeamCandidatesRequest> validator, InterclubAccess access, IIdentityProvider identity,
+    IMembershipReader memberships, AppDbContext db)
     : IHandler<ListTeamCandidatesRequest, PagedResponse<ListTeamCandidatesItem>>
 {
     public async Task<Result<PagedResponse<ListTeamCandidatesItem>>> HandleAsync(ListTeamCandidatesRequest request, CancellationToken ct)
@@ -25,9 +27,16 @@ internal sealed class ListTeamCandidatesHandler(IValidator<ListTeamCandidatesReq
         if (!access.CanManageFixtures(team))
             return Error.Forbidden("Réservé au capitaine de l'équipe et au bureau.");
 
-        var members = (await db.InterclubTeamMembers.AsNoTracking().Where(m => m.TeamId == teamId).Select(m => m.AccountId).ToListAsync(ct)).Select(id => id.ToString()).ToHashSet();
+        // A player belongs to a single team for a given season: whoever already plays in one of them is not a candidate.
+        var alreadyPlaying = (await db.InterclubTeamMembers.AsNoTracking()
+            .Join(db.InterclubTeams, m => m.TeamId, t => t.Id, (m, t) => new { m.AccountId, t.SeasonId })
+            .Where(x => x.SeasonId == team.SeasonId)
+            .Select(x => x.AccountId)
+            .ToListAsync(ct)).Select(id => id.ToString()).ToHashSet();
+        var statuses = await memberships.GetAllAsync(ct);
         var items = (await identity.ListAsync(ct))
-            .Where(a => AccountRules.IsClubMember(a) && a.IsActive && !members.Contains(a.Id))
+            .Where(a => AccountRules.IsClubMember(a) && a.IsActive && !alreadyPlaying.Contains(a.Id)
+                && TeamRules.CanPlayInterclubs(statuses.GetValueOrDefault(a.Id)))
             .Select(a => new ListTeamCandidatesItem(a.Id, a.Name))
             .ToList();
 

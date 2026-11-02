@@ -15,16 +15,18 @@ public sealed class AddTeamMemberEndpoint(IHandler<AddTeamMemberRequest> handler
     /// <param name="accountId">Account identifier of the person.</param>
     /// <param name="ct">Cancellation token of the request.</param>
     /// <response code="204">The person is a player of the team.</response>
-    /// <response code="400">Invalid identifier, or the person is not an active club member (see the errors).</response>
+    /// <response code="400">Invalid identifier, the person is not an active club member, or they are licensed in another club (see the errors).</response>
     /// <response code="403">The person is neither the captain of this team nor on the board.</response>
     /// <response code="404">No team with this identifier.</response>
+    /// <response code="409">The person already plays in another team of the same season.</response>
     [HttpPut]
     [EndpointSummary("Adds a player to a team")]
-    [EndpointDescription("The captain of the team (or the board) adds an active club member to the players of the team. Only the players of a team can answer its proposals of dates. Adding a player who is already in the team changes nothing.")]
+    [EndpointDescription("The captain of the team (or the board) adds an active club member to the players of the team. A player belongs to a single team for a given season: adding someone who already plays in another team of that season answers 409. A member licensed in another club (an 'external' membership) plays the interclubs for that club, not for this one, and is refused with 400. Adding a player who is already in this team changes nothing.")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AddTeamMember(string id, string accountId, CancellationToken ct) =>
         (await handler.HandleAsync(new AddTeamMemberRequest(id, accountId), ct)).ToNoContent();
 }

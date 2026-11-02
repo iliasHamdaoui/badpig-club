@@ -213,6 +213,15 @@ public abstract class IntegrationTest(ApiFixture fixture) : IAsyncLifetime
         return (await ReadAsync<IdDto>(response)).Id;
     }
 
+    /// <summary>A member whose membership is validated as "external": they are licensed in another club.</summary>
+    protected async Task<Person> GivenAnExternalAdherentAsync(Person board, string name = "Eric Externe")
+    {
+        await As(board).PostAsJsonAsync($"{V1}/admin/seasons", new { startsOn = "2026-09-01", internalFee = 60, externalFee = 30 }, CancellationToken);
+        var member = GivenMember(name);
+        await GivenValidatedMembershipAsync(board, member, "external");
+        return member;
+    }
+
     protected async Task GivenValidatedMembershipAsync(Person board, Person member, string? kind = null)
     {
         var response = await As(board).PostAsJsonAsync($"{V1}/admin/users/{member.Id}/membership/validate", new { kind }, CancellationToken);

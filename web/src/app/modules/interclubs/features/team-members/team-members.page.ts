@@ -65,13 +65,13 @@ const NO_PAGE = { items: [], page: 1, pageSize: 25, totalCount: 0, totalPages: 0
       @if (canManage()) {
         <section class="stack" aria-labelledby="t-add">
           <h2 id="t-add">Ajouter des joueurs</h2>
-          <p>Tous les adhérents actifs qui ne sont pas encore dans l'équipe.</p>
+          <p>Les adhérents licenciés au club qui ne jouent dans aucune équipe de la saison : on ne joue que pour une seule équipe par saison, et un licencié dans un autre club joue pour celui-ci.</p>
           <app-search-box label="Rechercher un adhérent…" (searched)="candidates.setSearch($event)" />
           @if (candidatesPage().items.length === 0) {
             <p class="empty">
               <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
               <strong>{{ candidates.search() ? 'Aucun résultat' : 'Personne à ajouter' }}</strong>
-              <span>{{ candidates.search() ? 'Essayez un autre nom.' : "Tous les adhérents sont déjà dans l'équipe." }}</span>
+              <span>{{ candidates.search() ? "Essayez un autre nom." : "Plus personne de disponible : les adhérents licenciés au club jouent déjà tous dans une équipe de la saison." }}</span>
             </p>
           } @else {
             <ul class="people">

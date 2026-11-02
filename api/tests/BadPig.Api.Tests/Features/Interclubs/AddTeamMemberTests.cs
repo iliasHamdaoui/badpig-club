@@ -92,4 +92,63 @@ public sealed class AddTeamMemberTests(ApiFixture fixture) : IntegrationTest(fix
         var member = Assert.Single(await MembersAsync(captain, teamId));
         Assert.True(member.IsCaptain);
     }
+
+    [Fact]
+    public async Task Should_ReturnConflict_When_ThePersonAlreadyPlaysInAnotherTeamOfTheSeason()
+    {
+        var board = GivenBoardMember();
+        var adherent = await GivenAnAdherentAsync(board);
+        var first = await GivenTeamAsync(board, "D4");
+        var second = await GivenTeamAsync(board, "D5");
+        Assert.Equal(HttpStatusCode.NoContent, (await As(board).PutAsync(Url(first, adherent.Id), null, CancellationToken)).StatusCode);
+
+        var response = await As(board).PutAsync(Url(second, adherent.Id), null, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Empty(await MembersAsync(board, second));
+    }
+
+    [Fact]
+    public async Task Should_AddThePlayer_When_TheOtherTeamIsInAnotherSeason()
+    {
+        var board = GivenBoardMember();
+        var adherent = await GivenAnAdherentAsync(board);
+        var lastSeason = await GivenSeasonAsync(board, "2025-09-01");
+        var before = await GivenTeamAsync(board, "D4", lastSeason);
+        var now = await GivenTeamAsync(board, "D4");
+        Assert.Equal(HttpStatusCode.NoContent, (await As(board).PutAsync(Url(before, adherent.Id), null, CancellationToken)).StatusCode);
+
+        var response = await As(board).PutAsync(Url(now, adherent.Id), null, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal([adherent.Name], (await MembersAsync(board, now)).Select(m => m.Name));
+    }
+
+    [Fact]
+    public async Task Should_AddThePlayerAgain_When_TheyLeftTheOtherTeamOfTheSeason()
+    {
+        var board = GivenBoardMember();
+        var adherent = await GivenAnAdherentAsync(board);
+        var first = await GivenTeamAsync(board, "D4");
+        var second = await GivenTeamAsync(board, "D5");
+        await As(board).PutAsync(Url(first, adherent.Id), null, CancellationToken);
+        Assert.Equal(HttpStatusCode.NoContent, (await As(board).DeleteAsync(Url(first, adherent.Id), CancellationToken)).StatusCode);
+
+        var response = await As(board).PutAsync(Url(second, adherent.Id), null, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Should_ReturnBadRequest_When_ThePersonIsLicensedInAnotherClub()
+    {
+        var board = GivenBoardMember();
+        var external = await GivenAnExternalAdherentAsync(board);
+        var teamId = await GivenTeamAsync(board);
+
+        var response = await As(board).PutAsync(Url(teamId, external.Id), null, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty(await MembersAsync(board, teamId));
+    }
 }
