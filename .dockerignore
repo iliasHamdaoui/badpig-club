@@ -1,0 +1,9 @@
+# The BFF build context is the repository root: anything useless (and bulky) is excluded.
+**/node_modules
+**/dist
+**/.angular
+**/bin
+**/obj
+.git
+.github
+**/*.env

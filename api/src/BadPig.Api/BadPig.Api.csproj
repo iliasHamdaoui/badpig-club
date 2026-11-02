@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <RootNamespace>BadPig</RootNamespace>
+    <!-- XML comments (///) of the request/response models feed the OpenAPI document. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.*" />
+    <!-- Native OpenAPI document generation (endpoint attributes + XML comments); Swagger UI only in Development. -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.*" />
+    <!-- Validation of the requests (one validator per feature). -->
+    <PackageReference Include="FluentValidation" Version="12.*" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.*" />
+    <!-- Cleaning of the rich text of the announcements (allow-list of HTML tags). -->
+    <PackageReference Include="HtmlSanitizer" Version="9.*" />
+    <!-- EF Core for PostgreSQL (single AppDbContext, split by module). -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.*" />
+  </ItemGroup>
+
+  <!-- SQL scripts of the database, applied at startup (see Shared/Infrastructure/Persistence/SqlMigrations.cs). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations/*.sql" LogicalName="migrations/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

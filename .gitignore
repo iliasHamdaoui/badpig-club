@@ -1,0 +1,15 @@
+# secrets
+.env
+*.env
+!.env.example
+# .NET
+bin/
+obj/
+# Node / Angular
+node_modules/
+dist/
+.angular/
+# éditeurs
+.vs/
+.idea/
+.vscode/

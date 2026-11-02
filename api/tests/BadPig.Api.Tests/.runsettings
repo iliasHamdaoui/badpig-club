@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Optional settings for running the tests from Visual Studio / Rider (Test > Configure Run Settings > Select Solution-Wide runsettings File).
+     From the command line: dotnet test --settings api/tests/BadPig.Api.Tests/.runsettings -->
+<RunSettings>
+  <RunConfiguration>
+    <EnvironmentVariables>
+      <!-- Keeps the PostgreSQL container between two runs (faster). Remove or set to false to start a fresh container each time. -->
+      <BADPIG_TEST_DB_REUSE>true</BADPIG_TEST_DB_REUSE>
+      <!-- Optional: fixed host port of the database, to connect to it from DBeaver / psql (user "postgres", database "postgres"). -->
+      <!-- <BADPIG_TEST_DB_PORT>55432</BADPIG_TEST_DB_PORT> -->
+      <!-- Password: do NOT write it in this file (committed to Git); define BADPIG_TEST_DB_PASSWORD in your own Windows environment. -->
+    </EnvironmentVariables>
+  </RunConfiguration>
+</RunSettings>

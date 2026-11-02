@@ -1,0 +1,104 @@
+name: Test - build and deploy
+
+# Runs on every push to the "develop" branch (and on demand).
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  # Integration tests of the API (Testcontainers starts PostgreSQL: Docker is available on the GitHub runner).
+  tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: API tests
+        run: dotnet test api/BadPig.sln --configuration Release
+
+  images:
+    needs: tests          # no image is published, and nothing is deployed, if a test fails
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read      # read the code
+      packages: write     # publish the images to GHCR
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # "web" is the BFF image (which also serves the Angular site): context = repository root.
+          - name: api
+            context: ./api
+            dockerfile: ./api/Dockerfile
+          - name: web
+            context: .
+            dockerfile: ./bff/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      # GHCR only accepts lowercase letters in the account name.
+      - name: Image name
+        id: img
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "image=ghcr.io/${owner}/badpig-club-${{ matrix.name }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ steps.img.outputs.image }}:test
+            ${{ steps.img.outputs.image }}:${{ github.sha }}
+          # Links the image to the repository: the repository's temporary token will be able to download it.
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  deploy:
+    needs: images
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read      # the temporary token lets the VPS download the images
+    concurrency:
+      group: deploy-test
+      cancel-in-progress: false
+    steps:
+      - name: Prepare the SSH connection
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          FINGERPRINT: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$FINGERPRINT" > ~/.ssh/known_hosts
+
+      # The VPS "deploy" account can only run one script, which reads the GitHub account
+      # and the temporary token from standard input.
+      - name: Deploy to the VPS
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          ACTOR: ${{ github.actor }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s\n%s\n' "$ACTOR" "$TOKEN" | ssh -T \
+            -i ~/.ssh/id_deploy -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts \
+            "deploy@${HOST}"

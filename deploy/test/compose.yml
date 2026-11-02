@@ -1,0 +1,69 @@
+# TEST environment: https://test.badpig.fr
+# To be placed in /opt/badpig/app-test/ on the VPS (with .env and bff.env, see .env.example and bff.env.example).
+#
+# BFF (Backend For Frontend) architecture:
+#   browser  ->  Traefik  ->  web (BFF: serves the Angular site, handles the OIDC sign-in and the tokens, HttpOnly cookie)
+#                               |-- relays /api to  ->  api (internal: NOT exposed by Traefik)
+# The site is additionally protected by Authentik (forwardAuth, groups Bureau/Admin), except /api (protected by the BFF cookie).
+
+services:
+  web:
+    image: ${IMAGE_WEB}:${TAG:-test}
+    container_name: badpig-test-web
+    restart: unless-stopped
+    mem_limit: 128m
+    env_file: [ bff.env ]       # contains Oidc__ClientSecret (secret of the Authentik provider, never in Git)
+    environment:
+      Oidc__Authority: https://auth.badpig.fr/application/o/badpig-test/
+      Oidc__ClientId: badpig-test-web
+      ReverseProxy__Clusters__api__Destinations__api__Address: http://badpig-test-api:8080/
+    networks: [ proxy ]
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /bff/health HTTP/1.0\\r\\n\\r\\n' >&3 && head -n1 <&3 | grep -q 200" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.badpig-test-web.rule=Host(`test.badpig.fr`)
+      - traefik.http.routers.badpig-test-web.entrypoints=websecure
+      - traefik.http.routers.badpig-test-web.middlewares=authentik-forward@docker
+      - traefik.http.routers.badpig-test-web.priority=10
+      # /api: without forwardAuth (calls from the site), protected by the BFF session cookie.
+      - traefik.http.routers.badpig-test-bff-api.rule=Host(`test.badpig.fr`) && PathPrefix(`/api`)
+      - traefik.http.routers.badpig-test-bff-api.entrypoints=websecure
+      - traefik.http.routers.badpig-test-bff-api.priority=100
+      - traefik.http.services.badpig-test-web.loadbalancer.server.port=8080
+
+  api:
+    image: ${IMAGE_API}:${TAG:-test}
+    container_name: badpig-test-api
+    restart: unless-stopped
+    mem_limit: 192m
+    env_file: [ .env ]          # contains Authentik__ApiToken and ConnectionStrings__Base (secrets)
+    environment:
+      Authentik__Issuer: https://auth.badpig.fr/application/o/badpig-test/
+      Authentik__Audience: badpig-test-web
+      Authentik__ApiBase: http://authentik-server:9000/api/v3
+      Smtp__Host: 172.21.0.1    # Postfix of the VPS ("mail" network): automatic e-mails to the people concerned
+    volumes:
+      - badpig-test-announcements:/data/announcements   # posters and attachments of the announcements (to include in the backups)
+    networks: [ proxy, db, mail ]   # db: PostgreSQL; mail: sending e-mails
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /api/v1/health HTTP/1.0\\r\\n\\r\\n' >&3 && head -n1 <&3 | grep -q 200" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - traefik.enable=false    # the API is only reachable by the BFF (internal network)
+
+volumes:
+  badpig-test-announcements:
+
+networks:
+  proxy:
+    external: true
+  db:
+    external: true
+  mail:
+    external: true

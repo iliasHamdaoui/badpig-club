@@ -1,0 +1,70 @@
+# LOCAL environment: http://localhost:8080
+# Builds the site (BFF + Angular) and the API from the sources, with a local PostgreSQL.
+# Identity: the sign-in goes through the TEST Authentik (https://auth.badpig.fr), see deploy/local/README.md.
+#
+# Usage (from this folder, after copying .env.example to .env):
+#   docker compose up --build
+
+name: badpig-local
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: badpig_local
+      POSTGRES_USER: badpig
+      POSTGRES_PASSWORD: badpig_local
+    ports:
+      - "5432:5432"            # optional: to browse the data (DBeaver, psql...)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U badpig -d badpig_local" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../../api
+      dockerfile: Dockerfile
+    environment:
+      ConnectionStrings__Base: Host=postgres;Database=badpig_local;Username=badpig;Password=badpig_local
+      Authentik__Issuer: https://auth.badpig.fr/application/o/badpig-test/
+      Authentik__Audience: badpig-test-web
+      # Public address of the Authentik API (locally the container cannot reach "authentik-server").
+      Authentik__ApiBase: https://auth.badpig.fr/api/v3
+      Authentik__ApiToken: ${AUTHENTIK_API_TOKEN:?Fill AUTHENTIK_API_TOKEN in .env}
+      Authentik__InvitationStage: ${AUTHENTIK_INVITATION_STAGE:-}
+      ASPNETCORE_ENVIRONMENT: Development
+      # E-mails: no SMTP server locally (leave empty = not sent).
+      Smtp__Host: ""
+      # Shop: Stripe TEST keys (sk_test_...) and the address Stripe sends the buyer back to.
+      # Without the secret key, placing an order answers 500 "Le paiement en ligne n'est pas configuré".
+      Stripe__SecretKey: ${STRIPE_SECRET_KEY:-}
+      Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET:-}
+      Shop__SiteUrl: http://localhost:8080
+    volumes:
+      - announcements:/data/announcements   # posters and attachments of the announcements
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ../..
+      dockerfile: bff/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      Oidc__Authority: https://auth.badpig.fr/application/o/badpig-test/
+      Oidc__ClientId: badpig-test-web
+      Oidc__ClientSecret: ${OIDC_CLIENT_SECRET:?Fill OIDC_CLIENT_SECRET in .env}
+      ReverseProxy__Clusters__api__Destinations__api__Address: http://api:8080/
+      ASPNETCORE_ENVIRONMENT: Development
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  announcements:
