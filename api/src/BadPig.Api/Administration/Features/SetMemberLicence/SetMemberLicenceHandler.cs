@@ -23,6 +23,9 @@ internal sealed class SetMemberLicenceHandler(IValidator<SetMemberLicenceRequest
         if (target is null || !AccountRules.IsClubMember(target))
             return Error.NotFound();
 
+        if (await licences.IsTakenAsync(request.Body.Number, target.Id, ct))
+            return Error.Conflict("Ce numéro de licence est déjà celui d'un autre adhérent.");
+
         await licences.SetAsync(target.Id, request.Body.Number, ct);
         await audit.RecordAsync("licence.updated", target.Id, ct);
         return Result.Success();

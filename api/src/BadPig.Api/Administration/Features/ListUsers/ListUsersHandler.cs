@@ -23,7 +23,10 @@ internal sealed class ListUsersHandler(IValidator<ListUsersRequest> validator, I
 
         var sub = currentUser.AccountId;
         var isAdmin = currentUser.IsInGroup(ClubGroup.Admin);
-        var accounts = (await identity.ListAsync(ct)).Where(AccountRules.IsClubMember).ToList();
+        // The board is counted on the whole club, not on the filtered page: "there is always one board member left"
+        // must not depend on what the person is looking at.
+        var club = (await identity.ListAsync(ct)).Where(AccountRules.IsClubMember).ToList();
+        var accounts = club.Where(a => UserGroupFilters.Matches(a, request.Group)).ToList();
         var invitations = (await db.Invitations.AsNoTracking().ToListAsync(ct)).ToDictionary(i => i.TargetId.ToString());
         var disabled = (await db.DisabledAccounts.AsNoTracking().ToListAsync(ct)).ToDictionary(d => d.AccountId.ToString(), d => d.DisabledSince);
         var seasons = await db.Seasons.AsNoTracking().ToListAsync(ct);
@@ -35,7 +38,7 @@ internal sealed class ListUsersHandler(IValidator<ListUsersRequest> validator, I
         var titles = (await db.BoardTitles.AsNoTracking().Include(b => b.Title).ToListAsync(ct))
             .Where(b => b.Title is not null)
             .ToDictionary(b => b.MemberId.ToString(), b => b.Title!);
-        var boardCount = accounts.Count(a => a.IsActive && a.IsInGroup(ClubGroup.Board));
+        var boardCount = club.Count(a => a.IsActive && a.IsInGroup(ClubGroup.Board));
 
         var rows = accounts.Select(a =>
         {

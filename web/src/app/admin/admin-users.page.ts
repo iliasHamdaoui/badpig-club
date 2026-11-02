@@ -44,11 +44,23 @@ import { Crumb, PageHead } from '../shared/ui/page-head';
         <app-invite-user-form />
       </details>
 
-      <div class="list-tools">
+      <div class="list-tools stack stack-s">
         <div class="cols cols-2" style="align-items: end">
           <app-search-box label="Nom, e-mail ou licence" (searched)="list.setSearch($event)" />
           <app-sort-select [state]="list" [fields]="sortFields" />
         </div>
+        <div class="row" style="--row-gap: var(--space-10)">
+          @for (filter of groupFilters; track filter.value) {
+            <button type="button" class="chip" [attr.aria-pressed]="group() === filter.value" (click)="setGroup(filter.value)">
+              {{ filter.label }}
+            </button>
+          }
+        </div>
+        @if (loaded()) {
+          <p class="small-text" aria-live="polite">
+            {{ users().totalCount }} personne{{ users().totalCount > 1 ? 's' : '' }}
+          </p>
+        }
       </div>
 
       @if (!loaded()) {
@@ -139,6 +151,22 @@ export class AdminUsersPage {
     return user.canManage || user.boardAction !== null;
   }
 
+  /** Everybody is in "Membres", so the first filter means the people who are neither on the board nor administrators. */
+  protected readonly groupFilters = [
+    { value: '', label: 'Tout le club' },
+    { value: 'members', label: 'Adhérents' },
+    { value: 'board', label: 'Bureau' },
+    { value: 'admin', label: 'Administrateurs' },
+  ];
+  protected readonly group = signal('');
+
+  protected setGroup(value: string): void {
+    if (value !== this.group()) {
+      this.group.set(value);
+      this.list.goTo(1);
+    }
+  }
+
   protected readonly sortFields = [
     { field: 'name', label: 'Nom' },
     { field: 'email', label: 'E-mail' },
@@ -153,12 +181,12 @@ export class AdminUsersPage {
     // Loads at start, after every action of a module component, and when the search, the sort or the page change.
     effect(() => {
       this.activity.changed();
-      const query = this.list.query();
+      const query = { ...this.list.query(), group: this.group() };
       untracked(() => void this.reload(query));
     });
   }
 
-  private async reload(query: ReturnType<ListState['query']>): Promise<void> {
+  private async reload(query: ReturnType<ListState['query']> & { group: string }): Promise<void> {
     try {
       const [users, titles] = await Promise.all([this.directory.users(query), this.board.allTitles()]);
       if (users.items.length === 0 && users.page > 1) {

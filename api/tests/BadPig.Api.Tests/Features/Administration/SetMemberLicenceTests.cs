@@ -108,4 +108,55 @@ public sealed class SetMemberLicenceTests(ApiFixture fixture) : IntegrationTest(
         Api.Accounts.Add(new AccountInfo(member.Id, member.Email, member.Name, member.Email, true, member.Groups, Api.Clock.UtcNow));
         Assert.Null((await UserAsync(board, member.Id)).Licence);
     }
+
+    [Fact]
+    public async Task Should_ReturnConflict_When_AnotherMemberAlreadyHasThatLicence()
+    {
+        var board = GivenBoardMember();
+        var marie = GivenMember("Marie Membre");
+        var zoe = GivenMember("Zoe Membre");
+        Assert.Equal(HttpStatusCode.NoContent, (await As(board).PutAsJsonAsync(Url(marie.Id), new { number = "07123456" }, CancellationToken)).StatusCode);
+
+        var response = await As(board).PutAsJsonAsync(Url(zoe.Id), new { number = "07123456" }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Null((await UserAsync(board, zoe.Id)).Licence);
+    }
+
+    [Fact]
+    public async Task Should_ReturnConflict_When_TheLicenceOnlyDiffersByCase()
+    {
+        var board = GivenBoardMember();
+        var marie = GivenMember("Marie Membre");
+        var zoe = GivenMember("Zoe Membre");
+        await As(board).PutAsJsonAsync(Url(marie.Id), new { number = "ab-123" }, CancellationToken);
+
+        var response = await As(board).PutAsJsonAsync(Url(zoe.Id), new { number = "AB-123" }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Should_KeepTheLicence_When_TheSameNumberIsSavedAgainOnTheSamePerson()
+    {
+        var board = GivenBoardMember();
+        var marie = GivenMember("Marie Membre");
+        await As(board).PutAsJsonAsync(Url(marie.Id), new { number = "07123456" }, CancellationToken);
+
+        var response = await As(board).PutAsJsonAsync(Url(marie.Id), new { number = "07123456" }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal("07123456", (await UserAsync(board, marie.Id)).Licence);
+    }
+
+    [Fact]
+    public async Task Should_AllowSeveralPeopleWithoutALicence_When_TheNumberIsEmpty()
+    {
+        var board = GivenBoardMember();
+        var marie = GivenMember("Marie Membre");
+        var zoe = GivenMember("Zoe Membre");
+
+        Assert.Equal(HttpStatusCode.NoContent, (await As(board).PutAsJsonAsync(Url(marie.Id), new { number = "" }, CancellationToken)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await As(board).PutAsJsonAsync(Url(zoe.Id), new { number = "" }, CancellationToken)).StatusCode);
+    }
 }

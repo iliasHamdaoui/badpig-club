@@ -10,7 +10,8 @@ import { API } from './api';
 export class UsersDirectory {
   private readonly http = inject(HttpClient);
 
-  users(query: ListQuery): Promise<Page<AdminUser>> {
+  /** The group filter is a parameter of this list only, hence not in `ListQuery`. */
+  users(query: ListQuery & { group?: string }): Promise<Page<AdminUser>> {
     return firstValueFrom(this.http.get<Page<AdminUser>>(`${API}/admin/users`, { params: listParams(query) }));
   }
 }

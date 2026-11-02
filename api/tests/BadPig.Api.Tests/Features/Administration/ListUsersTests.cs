@@ -131,4 +131,50 @@ public sealed class ListUsersTests(ApiFixture fixture) : IntegrationTest(fixture
         Assert.Equal("pending", page.Items.Single(u => u.Id == invited.Id).Status);
         Assert.Equal("active", page.Items.Single(u => u.Id == board.Id).Status);
     }
+
+    [Fact]
+    public async Task Should_KeepOnlyThePlainMembers_When_TheGroupFilterIsMembers()
+    {
+        var board = GivenBoardMember("Paul Bureau");
+        GivenAdmin("Alice Admin");
+        GivenMember("Zoe Membre");
+
+        var page = await ReadAsync<PageDto<UserDto>>(await As(board).GetAsync($"{Route}?group=members", CancellationToken));
+
+        Assert.Equal(["Zoe Membre"], page.Items.Select(u => u.Name));
+        Assert.Equal(1, page.TotalCount);
+    }
+
+    [Fact]
+    public async Task Should_KeepTheBoardAndTheAdmins_When_TheGroupFilterIsBoard()
+    {
+        var board = GivenBoardMember("Paul Bureau");
+        GivenAdmin("Alice Admin");
+        GivenMember("Zoe Membre");
+
+        var page = await ReadAsync<PageDto<UserDto>>(await As(board).GetAsync($"{Route}?group=board", CancellationToken));
+
+        Assert.Equal(["Alice Admin", "Paul Bureau"], page.Items.Select(u => u.Name));
+    }
+
+    [Fact]
+    public async Task Should_KeepOnlyTheAdmins_When_TheGroupFilterIsAdmin()
+    {
+        var board = GivenBoardMember("Paul Bureau");
+        GivenAdmin("Alice Admin");
+
+        var page = await ReadAsync<PageDto<UserDto>>(await As(board).GetAsync($"{Route}?group=admin", CancellationToken));
+
+        Assert.Equal(["Alice Admin"], page.Items.Select(u => u.Name));
+    }
+
+    [Fact]
+    public async Task Should_ReturnBadRequest_When_TheGroupFilterIsUnknown()
+    {
+        var board = GivenBoardMember();
+
+        var response = await As(board).GetAsync($"{Route}?group=capitaines", CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

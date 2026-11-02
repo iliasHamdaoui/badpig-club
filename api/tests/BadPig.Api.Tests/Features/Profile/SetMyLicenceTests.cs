@@ -75,4 +75,29 @@ public sealed class SetMyLicenceTests(ApiFixture fixture) : IntegrationTest(fixt
         Assert.Equal("07123456", (await ProfileAsync(me)).Licence);
         Assert.Equal("07999999", (await ProfileAsync(other)).Licence);
     }
+
+    [Fact]
+    public async Task Should_ReturnConflict_When_AnotherMemberAlreadyHasThatLicence()
+    {
+        var marie = GivenMember("Marie Membre");
+        var zoe = GivenMember("Zoe Membre");
+        Assert.Equal(HttpStatusCode.NoContent, (await As(marie).PutAsJsonAsync(Url, new { number = "07123456" }, CancellationToken)).StatusCode);
+
+        var response = await As(zoe).PutAsJsonAsync(Url, new { number = "07123456" }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Null((await ProfileAsync(zoe)).Licence);
+    }
+
+    [Fact]
+    public async Task Should_KeepTheLicence_When_ISaveMyOwnNumberAgain()
+    {
+        var me = GivenMember();
+        await As(me).PutAsJsonAsync(Url, new { number = "07123456" }, CancellationToken);
+
+        var response = await As(me).PutAsJsonAsync(Url, new { number = "07123456" }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal("07123456", (await ProfileAsync(me)).Licence);
+    }
 }

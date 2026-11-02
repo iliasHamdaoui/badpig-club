@@ -21,6 +21,9 @@ internal sealed class SetMyLicenceHandler(IValidator<SetMyLicenceRequest> valida
         if (me is null)
             return Error.NotFound();
 
+        if (await licences.IsTakenAsync(request.Number, me.Id, ct))
+            return Error.Conflict("Ce numéro de licence est déjà celui d'un autre adhérent.");
+
         await licences.SetAsync(me.Id, request.Number, ct);
         return Result.Success();
     }
