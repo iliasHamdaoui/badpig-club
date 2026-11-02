@@ -483,6 +483,7 @@ main h4 { font-size: var(--text-h5); }
 .rich-text li + li { margin-top: var(--space-5); }
 .rich-text strong { font-weight: var(--weight-bold); }
 .rich-text a { overflow-wrap: anywhere; }
+.rich-text blockquote { padding-left: var(--space-15); border-left: 0.3rem solid var(--color-border-strong); color: var(--color-text-muted); }
 
 /* ---------- En-tête, navigation, pied de page (composants app-header / app-footer) ---------- */
 .site-header { position: relative; z-index: var(--z-header); background: var(--header-background); border-bottom: 0.1rem solid var(--header-border); }

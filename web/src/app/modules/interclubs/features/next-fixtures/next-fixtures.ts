@@ -8,7 +8,7 @@ function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-/** The next fixtures of the club, those of my own teams first and marked, for the dashboard of a member. */
+/** The next fixtures of the club in date order, those of my own teams marked, for the dashboard of a member. */
 @Component({
   selector: 'app-next-fixtures',
   imports: [RouterLink],
@@ -57,9 +57,8 @@ export class NextFixtures implements OnInit {
       const teams = await this.api.teams({ pageSize: 100 });
       this.myTeams.set(teams.items.filter((t) => t.isPlayer || t.isMyTeam).map((t) => t.id));
       const page = await this.api.fixtures({ when: 'upcoming', sort: 'date', direction: 'asc', pageSize: 20 });
-      const mine = page.items.filter((f) => this.isMine(f));
-      const others = page.items.filter((f) => !this.isMine(f));
-      this.fixtures.set([...mine, ...others].slice(0, this.limit()));
+      // Chronological order, as the API returns it; my own teams are only marked, not moved up.
+      this.fixtures.set(page.items.slice(0, this.limit()));
     } catch {
       this.fixtures.set([]);
     } finally {

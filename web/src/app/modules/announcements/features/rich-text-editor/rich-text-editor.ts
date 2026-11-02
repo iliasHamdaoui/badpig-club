@@ -2,6 +2,8 @@ import { Component, ElementRef, afterNextRender, effect, model, viewChild } from
 
 /**
  * Small rich text editor (bold, italic, titles, lists, quote, link, emojis) built on a `contenteditable` element, with no library.
+ * The editing area carries the global `rich-text` class, so titles, lists and quotes look as they do once published
+ * (the reset removes bullets and heading sizes; scoped styles cannot reach elements created by the browser).
  * It produces HTML; the API cleans it again (only safe tags are kept), so this is a writing aid, not a protection.
  */
 @Component({
@@ -28,7 +30,7 @@ import { Component, ElementRef, afterNextRender, effect, model, viewChild } from
         <button type="button" class="btn btn-ghost btn-sm emoji" [attr.aria-label]="'Insérer ' + e" (mousedown)="$event.preventDefault()" (click)="insert(e)">{{ e }}</button>
       }
     </div>
-    <div #editor class="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Contenu de l'annonce"
+    <div #editor class="editor rich-text" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Contenu de l'annonce"
          data-placeholder="Écrivez votre annonce ici…" (input)="changed()" (blur)="changed()" (paste)="pastePlainText($event)"></div>
   `,
   styles: `
@@ -38,8 +40,6 @@ import { Component, ElementRef, afterNextRender, effect, model, viewChild } from
     .editor { min-height: 19.2rem; max-height: 44.8rem; overflow: auto; padding: 1.2rem; border: 0.1rem solid var(--input-border); border-radius: 0 0 8px 8px; background: var(--card-background); }
     .editor:focus { outline: 0.1rem solid var(--color-brand); outline-offset: -1px; }
     .editor:empty::before { content: attr(data-placeholder); color: var(--color-text-muted); }
-    .editor :is(h2, h3) { margin: 0.96rem 0 0.48rem; }
-    .editor blockquote { margin: 0.96rem 0; padding-left: 1.28rem; border-left: 0.1rem solid var(--color-brand); color: var(--color-text-muted); }
   `,
 })
 export class RichTextEditor {
