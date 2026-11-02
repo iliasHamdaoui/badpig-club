@@ -79,14 +79,14 @@ const MAP_LINK = 'https://www.openstreetmap.org/search?query=Rue%20du%20Coll%C3%
           @if (!auth.signedIn()) {
             <div class="card stack stack-s">
               <p class="row">
-                <span class="avatar" aria-hidden="true">SF</span>
-                <span class="highlight highlight-secondary">Président</span>
+                <span class="avatar" aria-hidden="true">BP</span>
+                <span class="highlight highlight-secondary">Contact</span>
               </p>
-              <h3 class="card-title">Savinien Ferrant</h3>
-              <p class="small-text">Pour toute question sur le club ou une demande d'adhésion, écrivez-lui.</p>
-              <p><a class="link-action" href="mailto:savinien.ferrant&#64;gmail.com">
+              <h3 class="card-title">Le bureau</h3>
+              <p class="small-text">Pour toute question sur le club, écrivez-nous.</p>
+              <p><a class="link-action" href="mailto:contact&#64;badpig.fr">
                 <svg class="ic ic-s" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg>
-                savinien.ferrant&#64;gmail.com
+                contact&#64;badpig.fr
               </a></p>
             </div>
             <p class="alert alert-info">

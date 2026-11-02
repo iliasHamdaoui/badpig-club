@@ -154,6 +154,7 @@ Tests are named `Should_ExpectedBehaviorOrAction_When_Condition`. See `CLAUDE.md
 | PUT | `/interclubs/proposals/{id}/answers` | **players of the team** the proposal belongs to (403 otherwise): my answer to one or several dates (`{ answers: [{ dateId, answer: yes\|maybe\|no }] }`), replacing the previous one; 409 once a date has been chosen |
 | POST | `/interclubs/proposals/{id}/choose` | team captain or board: picks a date (`{ dateId }`) → creates the fixture in the calendar (opponent and place taken from the proposal), closes the proposal → 201 + the fixture identifier; 409 if already chosen |
 | DELETE | `/interclubs/proposals/{id}` | team captain or board: cancels the proposal and its answers (a fixture already created stays) |
+| GET | `/admin/mailbox` | `Bureau` or `Admin`: tells whether new mail waits in the club mailbox — `isAvailable` (false when no mailbox is configured or the mail server cannot be reached), `unreadCount`, `webmailUrl`, `checkedAt`. Only the unread messages are counted, over IMAP, on a mailbox opened read-only: no message is ever downloaded, marked as read or stored. The answer is kept for a minute |
 | GET | `/admin/audit-log` | group `Bureau` or `Admin`: log of the board's actions on accounts (read only) |
 | GET | `/admin/users` | group `Bureau` or `Admin`: the people of the club (technical accounts hidden), their **licence number** and what can be done on each of them; the search also covers the licence. The status is `disabled` (deactivated account), `pending` (**never signed in**: the person has not chosen a password yet) or `active`; the invitation row only tells who invited them and when |
 | POST | `/admin/users/{id}/disable` · `/enable` | `Bureau` or `Admin`: deactivates / reactivates an account. An account deactivated for more than a month is deleted automatically (background job every 6 h, "Système" in the audit log; never for `Bureau`/`Admin`) |
@@ -206,6 +207,14 @@ Two modules, split by actor: `Shop` (board only: products, variants, stock, hist
 - **Stripe webhook**: in the Stripe dashboard (test mode, then production), add an endpoint `https://<site>/api/v1/shop/payments/notifications` for the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. The BFF lets this single `POST` route through without a session nor an anti-CSRF header (the signature protects it); it is not behind the Traefik access control of the test website (`/api` has its own router).
 - **Stripe fees** (French cards, to be checked on Stripe's pricing page): about 1.5% + €0.25 per payment, i.e. ~€0.55 on a €20 item.
 - **End-to-end tests without real money**: in Stripe test mode, the card `4242 4242 4242 4242` (future date, any CVC) succeeds; the Stripe CLI (`stripe listen --forward-to …/api/v1/shop/payments/notifications`) simulates webhooks locally.
+
+## Club mailbox
+
+The board writes from `contact@badpig.fr`, a mailbox hosted by the mail provider, and reads it in a real mail client (webmail or IMAP). The application does **not** replace that client: it only tells the board, on `/admin`, that new mail is waiting, next to the memberships to validate and the orders to hand over.
+
+How it works: `IMailboxReader` (`Shared/Mailbox/`, the only place that talks to the mail server, like `Identity/` and `Payments/`) opens the inbox **read-only** over IMAP, asks for the identifiers of the unread messages and counts them. No message, sender or subject ever enters the application, nothing is stored and nothing is marked as read, so no personal data of third parties lands in the database. The answer is kept for a minute so that opening the board home page does not reconnect every time, and the server is given 8 seconds to answer.
+
+**API settings** (environment variables, never in Git): `Mailbox__Host` (IMAP server; empty = the feature is off and the site shows nothing), `Mailbox__Port` (993 by default), `Mailbox__User` (the full address, e.g. `contact@badpig.fr`), `Mailbox__Password` (the mailbox password: a secret, it lives in the server's `.env`) and `Mailbox__WebmailUrl` (where the "Ouvrir la messagerie" link points; empty = no link). An unreachable mailbox is logged as a warning and is never an error for the board.
 
 ## Announcements: end date and automatic deletion
 
@@ -265,6 +274,7 @@ Step 25 (GitHub Actions) automates building the images (GHCR) and this deploymen
 
 - In the production API `.env`: `Announcements__SiteUrl=https://<public address of the website>` (no secret). Without it, comment e-mails carry no link to the conversation.
 - Shop: create the **production** Stripe settings (key `sk_live_…`, production webhook endpoint and its `whsec_…`) in the production API `.env` (`Stripe__SecretKey`, `Stripe__WebhookSecret`, `Shop__SiteUrl`), enable Apple Pay / Google Pay in the Stripe dashboard, check that the `/api/v1/shop/payments/notifications` route is reachable from outside (not behind an access control) and make a real payment of a few euros to check the webhook.
+- Club mailbox: set `Mailbox__Host`, `Mailbox__User`, `Mailbox__Password` and `Mailbox__WebmailUrl` in the production API `.env`, with the production mailbox.
 - Test the WhatsApp link preview (it cannot be seen on the test environment, reserved for the board by Traefik) and check that the folder holding posters and attachments (`Announcements:StoragePath`) is on a backed-up volume.
 
 ## Website: design and home page

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ShopAlerts } from '../modules/shop';
+import { ClubMailbox } from '../shared/infrastructure/club-mailbox';
 import { UsersDirectory } from '../shared/infrastructure/users-directory';
 import { Crumb, PageHead } from '../shared/ui/page-head';
 
@@ -32,6 +33,18 @@ import { Crumb, PageHead } from '../shared/ui/page-head';
           <span>
             <span class="alert-title">{{ ordersToHandOver() }} commande{{ ordersToHandOver() > 1 ? 's' : '' }} à remettre.</span>&ngsp;
             <a routerLink="/admin/shop/orders">Voir les commandes</a>
+          </span>
+        </p>
+      }
+
+      @if (unreadMail() > 0) {
+        <p class="alert alert-info">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg>
+          <span>
+            <span class="alert-title">{{ unreadMail() }} message{{ unreadMail() > 1 ? 's' : '' }} non lu{{ unreadMail() > 1 ? 's' : '' }} dans la boîte du club.</span>&ngsp;
+            @if (webmailUrl(); as url) {
+              <a [href]="url" target="_blank" rel="noopener">Ouvrir la messagerie</a>
+            }
           </span>
         </p>
       }
@@ -122,8 +135,11 @@ export class AdminHomePage implements OnInit {
   protected readonly trail: Crumb[] = [];
   private readonly users = inject(UsersDirectory);
   private readonly shop = inject(ShopAlerts);
+  private readonly mailbox = inject(ClubMailbox);
   protected readonly toValidate = signal(0);
   protected readonly ordersToHandOver = signal(0);
+  protected readonly unreadMail = signal(0);
+  protected readonly webmailUrl = signal<string | null>(null);
 
   async ngOnInit(): Promise<void> {
     try {
@@ -134,5 +150,10 @@ export class AdminHomePage implements OnInit {
       this.toValidate.set(0);
     }
     this.ordersToHandOver.set(await this.shop.ordersToHandOver());
+
+    // No mailbox configured, or mail server unreachable: nothing is shown, it is not the board's problem.
+    const mail = await this.mailbox.status();
+    this.unreadMail.set(mail?.unreadCount ?? 0);
+    this.webmailUrl.set(mail?.webmailUrl ?? null);
   }
 }

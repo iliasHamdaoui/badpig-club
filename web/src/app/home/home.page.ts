@@ -123,11 +123,11 @@ const MAP_LINK = 'https://www.openstreetmap.org/search?query=Rue%20du%20Coll%C3%
               <section class="stack" aria-labelledby="t-contact">
                 <h2 id="t-contact">Contact</h2>
                 <div class="card stack stack-s">
-                  <p><strong>Savinien Ferrant</strong><br /><span class="small-text">Président</span></p>
+                  <p><strong>Le bureau</strong><br /><span class="small-text">BadPig – Badminton Pignan</span></p>
                   <p>
-                    <a class="link-action" href="mailto:savinien.ferrant&#64;gmail.com">
+                    <a class="link-action" href="mailto:contact&#64;badpig.fr">
                       <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg>
-                      savinien.ferrant&#64;gmail.com
+                      contact&#64;badpig.fr
                     </a>
                   </p>
                   <p class="row">

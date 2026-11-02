@@ -37,7 +37,7 @@ public sealed class ListBoardMembersTests(ApiFixture fixture) : IntegrationTest(
     [Fact]
     public async Task Should_ListTheBoardWithItsTitlesAndEmails_When_AnAdherentAsks()
     {
-        var board = GivenBoardMember("Savinien Ferrant");
+        var board = GivenBoardMember("Paul Vidal");
         var treasurer = GivenBoardMember("Camille Roux");
         GivenMember("Marie Membre");
         await GivenTitleOfAsync(board, board, "Président");
@@ -46,7 +46,7 @@ public sealed class ListBoardMembersTests(ApiFixture fixture) : IntegrationTest(
 
         var people = await BoardAsync(adherent);
 
-        Assert.Equal(["Camille Roux", "Savinien Ferrant"], people.Select(p => p.Name));
+        Assert.Equal(["Camille Roux", "Paul Vidal"], people.Select(p => p.Name));
         Assert.Equal(["Trésorière", "Président"], people.Select(p => p.Title));
         Assert.Equal(treasurer.Email, people[0].Email);
         Assert.Equal(treasurer.Id, people[0].AccountId);
@@ -77,7 +77,7 @@ public sealed class ListBoardMembersTests(ApiFixture fixture) : IntegrationTest(
     [Fact]
     public async Task Should_SortOnTheTitle_When_AskedTo()
     {
-        var board = GivenBoardMember("Savinien Ferrant");
+        var board = GivenBoardMember("Paul Vidal");
         var secretary = GivenBoardMember("Anna Secretaire");
         await GivenTitleOfAsync(board, board, "Président");
         await GivenTitleOfAsync(board, secretary, "Secrétaire");
@@ -95,7 +95,7 @@ public sealed class ListBoardMembersTests(ApiFixture fixture) : IntegrationTest(
     [Fact]
     public async Task Should_FindAPerson_When_TheSearchMatchesTheNameOrTheTitle()
     {
-        var board = GivenBoardMember("Savinien Ferrant");
+        var board = GivenBoardMember("Paul Vidal");
         var other = GivenBoardMember("Camille Roux");
         await GivenTitleOfAsync(board, other, "Trésorière");
         var adherent = await GivenAnAdherentAsync(board);

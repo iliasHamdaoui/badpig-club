@@ -44,6 +44,12 @@ services:
       Stripe__SecretKey: ${STRIPE_SECRET_KEY:-}
       Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET:-}
       Shop__SiteUrl: http://localhost:8080
+      # Club mailbox: only counts the unread messages (nothing is read). Empty host = the banner never shows.
+      Mailbox__Host: ${MAILBOX_HOST:-}
+      Mailbox__Port: ${MAILBOX_PORT:-993}
+      Mailbox__User: ${MAILBOX_USER:-}
+      Mailbox__Password: ${MAILBOX_PASSWORD:-}
+      Mailbox__WebmailUrl: ${MAILBOX_WEBMAIL_URL:-}
     volumes:
       - announcements:/data/announcements   # posters and attachments of the announcements
     depends_on:

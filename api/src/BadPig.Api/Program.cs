@@ -2,6 +2,7 @@ using BadPig.Administration;
 using BadPig.Announcements;
 using BadPig.Interclubs;
 using BadPig.Shared.Identity;
+using BadPig.Shared.Mailbox;
 using BadPig.Shared.Payments;
 using BadPig.Orders;
 using BadPig.Shop;
@@ -21,6 +22,9 @@ builder.Services.AddIdentityAuthentication(configuration);
 
 // --- Online payments: the provider (the only place that knows which one) ---
 builder.Services.AddPaymentProvider(configuration);
+
+// --- Club mailbox: only counts the unread messages, so the board knows new mail waits ---
+builder.Services.AddClubMailbox(configuration);
 
 // --- Authorization: groups come from the token ("groups" claim) ---
 builder.Services.AddAuthorizationBuilder()

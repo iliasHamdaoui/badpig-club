@@ -40,12 +40,14 @@ services:
     container_name: badpig-test-api
     restart: unless-stopped
     mem_limit: 192m
-    env_file: [ .env ]          # contains Authentik__ApiToken and ConnectionStrings__Base (secrets)
+    env_file: [ .env ]          # contains Authentik__ApiToken, ConnectionStrings__Base, the Stripe keys and Mailbox__Password (secrets)
     environment:
       Authentik__Issuer: https://auth.badpig.fr/application/o/badpig-test/
       Authentik__Audience: badpig-test-web
       Authentik__ApiBase: http://authentik-server:9000/api/v3
       Smtp__Host: 172.21.0.1    # Postfix of the VPS ("mail" network): automatic e-mails to the people concerned
+      # Club mailbox: the board is told on /admin that unread mail waits. Host, user, password and webmail
+      # address come from .env (see .env.example); an empty Mailbox__Host turns the feature off.
     volumes:
       - badpig-test-announcements:/data/announcements   # posters and attachments of the announcements (to include in the backups)
     networks: [ proxy, db, mail ]   # db: PostgreSQL; mail: sending e-mails

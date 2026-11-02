@@ -19,6 +19,8 @@
     <!-- Validation of the requests (one validator per feature). -->
     <PackageReference Include="FluentValidation" Version="12.*" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.*" />
+    <!-- IMAP: counts the unread messages of the club mailbox (Shared/Mailbox), nothing is downloaded. -->
+    <PackageReference Include="MailKit" Version="4.*" />
     <!-- Cleaning of the rich text of the announcements (allow-list of HTML tags). -->
     <PackageReference Include="HtmlSanitizer" Version="9.*" />
     <!-- EF Core for PostgreSQL (single AppDbContext, split by module). -->

@@ -137,7 +137,7 @@ réserve pas de bloc pour ça.
 > Fermé pendant les vacances scolaires.
 >
 > **Contact**
-> Savinien Ferrant, président — savinien.ferrant@gmail.com
+> contact@badpig.fr
 
 Les trois séances sont identiques et ouvertes aux adhérents : il n'y a pas de créneau distinct par
 niveau ou par âge, ne découpe donc pas cette section par public.

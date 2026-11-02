@@ -172,7 +172,7 @@ export class SiteHeader {
           </div>
           <div>
             <h2>Contact</h2>
-            <p class="small-text">Savinien Ferrant, président<br /><a href="mailto:savinien.ferrant@gmail.com">savinien.ferrant&#64;gmail.com</a></p>
+            <p class="small-text"><a href="mailto:contact@badpig.fr">contact&#64;badpig.fr</a></p>
             <p class="row" style="--row-gap: var(--space-15)">
               <a class="social" href="https://www.facebook.com/BadPig34/" target="_blank" rel="noopener">
                 <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 9h3V5.5h-2.5A3.5 3.5 0 0 0 11 9v2H8.5v3.5H11V21h3.5v-6.5H17L17.5 11H14V9.5a.5.5 0 0 1 .5-.5z"></path></svg>

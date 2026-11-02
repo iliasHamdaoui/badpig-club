@@ -22,6 +22,8 @@ public sealed record ClubClosureDto(string Name, string EndsOn);
 
 public sealed record ClubSessionsDto(string Today, List<ClubSessionDayDto> Weekly, bool IsOpenToday, ClubClosureDto? Closure, List<ClubSessionToComeDto> Next);
 
+public sealed record MailboxDto(bool IsAvailable, int UnreadCount, string? WebmailUrl, DateTimeOffset? CheckedAt);
+
 public sealed record SeasonStatisticsDto(string SeasonId, string Name, int InternalCount, int ExternalCount, int TotalCount, decimal InternalRevenue, decimal ExternalRevenue, decimal TotalRevenue);
 
 /// Read from /club/board.

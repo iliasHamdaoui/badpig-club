@@ -1,5 +1,6 @@
 using BadPig.Shared.Core;
 using BadPig.Shared.Identity;
+using BadPig.Shared.Mailbox;
 using BadPig.Shared.Payments;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
@@ -40,6 +41,9 @@ public sealed class TestApplication(string connectionString) : WebApplicationFac
     /// <summary>Substitute of the payment provider (Stripe): by default it opens payment pages that stay open; check the calls with <c>Received()</c>.</summary>
     public IPaymentProvider Payments { get; } = Substitute.For<IPaymentProvider>();
 
+    /// <summary>Substitute of the club mailbox: no mailbox configured by default (see GivenTheClubMailboxHas).</summary>
+    public IMailboxReader Mailbox { get; } = Substitute.For<IMailboxReader>();
+
     public TestApplication Prepare()
     {
         Reset();
@@ -57,9 +61,12 @@ public sealed class TestApplication(string connectionString) : WebApplicationFac
         Mail.ClearSubstitute(ClearOptions.All);
         Clock.ClearSubstitute(ClearOptions.All);
         Payments.ClearSubstitute(ClearOptions.All);
+        Mailbox.ClearSubstitute(ClearOptions.All);
         Accounts.Wire(Identity);
         Clock.UtcNow.Returns(DefaultNow);
         WirePayments();
+        // No mailbox configured by default: the site shows nothing (see GivenTheClubMailboxHas).
+        Mailbox.ReadStatusAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<MailboxStatus?>(null));
     }
 
     // A payment page per order, still open; a notification is refused unless a test says otherwise (see GivenThePaymentProviderNotifies).
@@ -85,6 +92,7 @@ public sealed class TestApplication(string connectionString) : WebApplicationFac
         builder.UseSetting("Announcements:SiteUrl", "https://test.badpig.fr");
         builder.UseSetting("Shop:SiteUrl", "https://test.badpig.fr");
         builder.UseSetting("Authentik:ApiBase", "https://auth.test.invalid/api/v3");
+        builder.UseSetting("Mailbox:WebmailUrl", "https://webmail.test.invalid");
 
         builder.ConfigureTestServices(services =>
         {
@@ -96,6 +104,8 @@ public sealed class TestApplication(string connectionString) : WebApplicationFac
             services.AddSingleton(Clock);
             services.RemoveAll<IPaymentProvider>();
             services.AddSingleton(Payments);
+            services.RemoveAll<IMailboxReader>();
+            services.AddSingleton(Mailbox);
 
             services.AddAuthentication(o =>
                 {

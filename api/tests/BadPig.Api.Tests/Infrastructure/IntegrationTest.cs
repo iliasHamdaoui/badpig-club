@@ -1,4 +1,5 @@
 using BadPig.Shared.Core;
+using BadPig.Shared.Mailbox;
 using BadPig.Shared.Payments;
 
 namespace BadPig.Api.Tests.Infrastructure;
@@ -382,4 +383,14 @@ public abstract class IntegrationTest(ApiFixture fixture) : IAsyncLifetime
     /// <summary>The captain (or the board) enters a result of the fixture (see <see cref="ResultBody"/>).</summary>
     protected async Task GivenResultAsync(Person who, string fixtureId, params string[] won) =>
         Assert.Equal(HttpStatusCode.NoContent, (await As(who).PutAsJsonAsync($"{V1}/interclubs/fixtures/{fixtureId}/result", ResultBody(won), CancellationToken)).StatusCode);
+
+    // --- Club mailbox ---
+
+    /// <summary>A club mailbox that can be reached and holds this many unread messages.</summary>
+    protected void GivenTheClubMailboxHas(int unread)
+    {
+        // The time is read before Returns(): reading a substitute inside it would configure the clock instead.
+        var now = Api.Clock.UtcNow;
+        Api.Mailbox.ReadStatusAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<MailboxStatus?>(new MailboxStatus(unread, now)));
+    }
 }
