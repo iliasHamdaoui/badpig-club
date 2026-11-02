@@ -25,14 +25,14 @@ import { Component, ElementRef, afterNextRender, effect, model, viewChild } from
       <button type="button" class="btn btn-ghost btn-sm" title="Enlever la mise en forme" (mousedown)="$event.preventDefault()" (click)="run('removeFormat')">Effacer</button>
       <span class="sep"></span>
       @for (e of emojis; track e) {
-        <button type="button" class="secondary small emoji" [attr.aria-label]="'Insérer ' + e" (mousedown)="$event.preventDefault()" (click)="insert(e)">{{ e }}</button>
+        <button type="button" class="btn btn-ghost btn-sm emoji" [attr.aria-label]="'Insérer ' + e" (mousedown)="$event.preventDefault()" (click)="insert(e)">{{ e }}</button>
       }
     </div>
     <div #editor class="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Contenu de l'annonce"
          data-placeholder="Écrivez votre annonce ici…" (input)="changed()" (blur)="changed()" (paste)="pastePlainText($event)"></div>
   `,
   styles: `
-    .toolbar { display: flex; flex-wrap: wrap; gap: 0.48rem; align-items: center; padding: 0.64rem; border: 0.1rem solid var(--input-border); border-bottom: 0; border-radius: var(--radius-m) 8px 0 0; background: #faf6f5; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.48rem; align-items: center; padding: 0.64rem; border: 0.1rem solid var(--input-border); border-bottom: 0; border-radius: var(--radius-m) var(--radius-m) 0 0; background: var(--color-background); }
     .sep { width: 1px; align-self: stretch; background: #d9cdcb; margin: 0 0.32rem; }
     .emoji { padding: 0.24rem 0.64rem; }
     .editor { min-height: 19.2rem; max-height: 44.8rem; overflow: auto; padding: 1.2rem; border: 0.1rem solid var(--input-border); border-radius: 0 0 8px 8px; background: var(--card-background); }

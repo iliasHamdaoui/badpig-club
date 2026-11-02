@@ -52,7 +52,7 @@ import { Crumb, PageHead } from '../../../../shared/ui/page-head';
         <p class="empty">
           <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H8l-4 4z"></path></svg>
           <strong>Aucune annonce</strong>
-          <span>{{ list.search() ? 'Essayez une autre recherche.' : 'Les nouvelles du club s\'afficheront ici.' }}</span>
+          <span>{{ list.search() ? "Essayez une autre recherche." : "Les nouvelles du club s'afficheront ici." }}</span>
         </p>
       } @else {
         <ul class="news-list" aria-label="Annonces">

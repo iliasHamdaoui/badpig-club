@@ -114,7 +114,7 @@ const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
     .check label { display: inline-flex; gap: 0.8rem; align-items: center; }
     .check input { width: auto; }
     .check .small-text { display: block; }
-    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(22.4rem, 1fr)); gap: 1.6rem; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(22.4rem, 1fr)); gap: 1.6rem; align-items: start; }
     .poster { display: block; max-width: 25.6rem; max-height: 35.2rem; border-radius: var(--radius-m); }
     .files { list-style: none; padding: 0; }
     .files li { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; padding: 0.4rem 0; }
