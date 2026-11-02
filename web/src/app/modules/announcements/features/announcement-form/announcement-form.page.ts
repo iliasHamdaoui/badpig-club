@@ -13,6 +13,14 @@ const MAX_POSTER_BYTES = 5 * 1024 * 1024;
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
 /** Creation and edition of an announcement (board). The poster and the attachments are added once the announcement exists. */
+/** The date (yyyy-MM-dd, local time) `days` days from today. */
+function inDays(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 @Component({
   selector: 'app-announcement-form',
   imports: [FormsModule, RouterLink, RichTextEditor, PollEditor],
@@ -26,8 +34,8 @@ const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
       } @else if (loadFailed()) {
         <p class="error">Impossible de charger cette annonce.</p>
       } @else {
-        @if (message()) { <p class="success">{{ message() }}</p> }
-        @if (error()) { <p class="error">{{ error() }}</p> }
+        @if (message()) { <p class="alert alert-success" role="status">{{ message() }}</p> }
+        @if (error()) { <p class="alert alert-error" role="alert">{{ error() }}</p> }
 
         <form (ngSubmit)="save()">
           <label for="title">{{ isPoll() ? 'Question' : 'Titre' }}</label>
@@ -61,6 +69,10 @@ const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
             <h2>Sondage</h2>
             <app-poll-editor [(options)]="pollOptions" [(allowMultiple)]="allowMultiple" [(isAnonymous)]="isAnonymous" [(closesOn)]="closesOn"
                              [hasAnswers]="(announcement()?.poll?.participantCount ?? 0) > 0" [closed]="announcement()?.poll?.isClosed ?? false" />
+          }
+
+          @if (saveHint(); as hint) {
+            <p class="small-text" role="status">{{ hint }}</p>
           }
 
           <p class="actions">
@@ -157,6 +169,9 @@ export class AnnouncementFormPage {
       const id = params.get('id');
       this.id.set(id);
       this.form.set(this.route.snapshot.data['form'] === 'poll' ? 'poll' : 'text');
+      if (!id && this.isPoll() && this.closesOn() === '') {
+        this.closesOn.set(inDays(7));
+      }
       if (id) {
         void this.load(id);
       }
@@ -182,6 +197,8 @@ export class AnnouncementFormPage {
       }
     } catch (e) {
       this.error.set(apiErrorMessage(e, "L'enregistrement a échoué."));
+      // The message is at the top of the page: bring it into view, the button is usually far below.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       this.busy.set(null);
     }
@@ -259,12 +276,25 @@ export class AnnouncementFormPage {
 
   /** A function, not a computed: the title is a plain field of the form. */
   protected canSave(): boolean {
-    return this.title.trim() !== '' && (!this.isPoll() || this.isPollValid());
+    return this.saveHint() === '';
   }
 
-  private isPollValid(): boolean {
+  /** What prevents saving, in words (empty when the form can be saved): the button is disabled, so it must say why. */
+  protected saveHint(): string {
+    if (this.title.trim() === '') {
+      return this.isPoll() ? 'Saisissez la question du sondage.' : 'Saisissez un titre.';
+    }
+    if (!this.isPoll()) {
+      return '';
+    }
     const labels = this.pollOptions().map((o) => o.trim().toLowerCase());
-    return labels.length >= 2 && labels.every((l) => l.length > 0) && new Set(labels).size === labels.length && this.closesOn() !== '';
+    if (labels.length < 2 || labels.some((l) => l.length === 0)) {
+      return 'Renseignez au moins deux choix, tous remplis (ou retirez ceux que vous n\'utilisez pas).';
+    }
+    if (new Set(labels).size !== labels.length) {
+      return 'Deux choix sont identiques.';
+    }
+    return this.closesOn() === '' ? 'Choisissez la date limite du sondage.' : '';
   }
 
   private pollInput(): PollAnnouncementInput {
