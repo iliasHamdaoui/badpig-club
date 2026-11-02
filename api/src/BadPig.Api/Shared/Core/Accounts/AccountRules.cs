@@ -20,6 +20,12 @@ public static class AccountRules
     public static bool IsBoardOrAdmin(AccountInfo account) => account.IsInGroup(ClubGroup.Board) || account.IsInGroup(ClubGroup.Admin);
 
     /// <summary>
+    /// True once the person has signed in at least once. Before that they are only invited: nothing says yet that the
+    /// address the invitation went to is really theirs, so the club sends them nothing but that invitation.
+    /// </summary>
+    public static bool HasCompletedSignup(AccountInfo account) => account.LastLogin is not null;
+
+    /// <summary>
     /// A person can manage a club account if it is not their own; a Members account can be managed by the board,
     /// Board and Admin accounts only by an Admin.
     /// </summary>

@@ -32,6 +32,20 @@ public sealed class OrderBoardNotificationTests(ApiFixture fixture) : Integratio
     }
 
     [Fact]
+    public async Task Should_NotEmailABoardMember_When_TheyHaveNeverSignedIn()
+    {
+        var paul = GivenBoardMember("Paul Bureau");
+        var invited = GivenInvitedBoardMember("Bruno Invite");
+        var adherent = await GivenAnAdherentAsync(paul, "Marie Adherente");
+        var orderId = await GivenOrderAsync(adherent, (await GivenAnArticleAsync(paul), 1));
+
+        await GivenTheOrderIsPaidAsync(adherent, orderId);
+
+        AssertBoardEmail(paul, 1);
+        AssertBoardEmail(invited, 0);
+    }
+
+    [Fact]
     public async Task Should_NotEmailTheBoard_When_TheOrderIsOnlyPlaced()
     {
         var board = GivenBoardMember();

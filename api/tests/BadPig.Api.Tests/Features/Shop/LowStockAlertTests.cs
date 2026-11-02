@@ -31,6 +31,20 @@ public sealed class LowStockAlertTests(ApiFixture fixture) : IntegrationTest(fix
     }
 
     [Fact]
+    public async Task Should_NotEmailABoardMember_When_TheyHaveNeverSignedIn()
+    {
+        var paul = GivenBoardMember("Paul Bureau");
+        var invited = GivenInvitedBoardMember("Bruno Invite");
+        var adherent = await GivenAnAdherentAsync(paul);
+        var variantId = await GivenAnArticleAsync(paul, quantity: 10, lowStockThreshold: 5);
+
+        await PayAsync(adherent, variantId, 5);
+
+        AssertLowStockEmail(paul, 1);
+        AssertLowStockEmail(invited, 0);
+    }
+
+    [Fact]
     public async Task Should_NotEmailAnyone_When_TheStockStaysAboveItsThreshold()
     {
         var board = GivenBoardMember();

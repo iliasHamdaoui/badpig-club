@@ -529,6 +529,14 @@ main h4 { font-size: var(--text-h5); }
   .hero-grid { display: flex; align-items: center; justify-content: space-between; gap: var(--space-40); }
   .hero-logo { display: block; flex: none; }
 }
+@container vp (min-width: 102.4rem) {
+  /* Wide screen: the title takes the width the logo leaves, instead of breaking for nothing;
+     the paragraphs keep a comfortable line length, and the logo gives up a little room. */
+  .hero-in { max-width: 86rem; }
+  .hero-in p { max-width: 72rem; }
+  .hero-grid { gap: var(--space-30); }
+  .hero-logo img { height: 27rem; }
+}
 
 /* ---------- Colonnes réactives (selon la largeur du conteneur) ---------- */
 .cols { display: grid; gap: var(--space-20); }

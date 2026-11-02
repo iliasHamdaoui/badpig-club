@@ -33,6 +33,9 @@ public abstract class IntegrationTest(ApiFixture fixture) : IAsyncLifetime
     /// <summary>An invited person who has not completed the signup yet (never signed in).</summary>
     protected Person GivenInvitedPerson(string name = "Ines Invitee") => CreateAccount(name, false, true, ClubGroup.Members);
 
+    /// <summary>A person invited into the board who has not completed the signup yet: their address is not confirmed.</summary>
+    protected Person GivenInvitedBoardMember(string name = "Bruno Invite") => CreateAccount(name, false, true, ClubGroup.Members, ClubGroup.Board);
+
     protected Person GivenDisabledMember(string name = "Denis Desactive") => CreateAccount(name, true, false, ClubGroup.Members);
 
     /// <summary>A person who has signed in, in the given groups.</summary>

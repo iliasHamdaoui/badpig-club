@@ -76,7 +76,7 @@ const MAP_LINK = 'https://www.openstreetmap.org/search?query=Rue%20du%20Coll%C3%
           <div class="container hero-grid">
             <div class="hero-in">
               <p class="eyebrow" style="color: var(--hero-text)">Badminton Pignan</p>
-              <h1 id="t-hero">BadPig, le badminton entre voisins</h1>
+              <h1 id="t-hero">BadPig, le badminton comme on l'aime</h1>
               <p class="lead">Un club amateur et familial : trois soirs par semaine, on joue, on rit et on progresse à son rythme.</p>
               <p>Débutants et joueurs expérimentés partagent les mêmes séances, et le club engage aussi des équipes en interclubs.</p>
               <div class="row" style="--row-gap: var(--space-20)">
