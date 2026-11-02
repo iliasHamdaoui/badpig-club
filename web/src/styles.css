@@ -394,6 +394,8 @@ main h4 { font-size: var(--text-h5); }
 .filters { display: flex; flex-wrap: wrap; gap: var(--space-15); align-items: flex-end; }
 .filters app-search-box { flex: 1 1 28rem; min-width: 0; }
 .filters .select { width: auto; min-width: 20rem; }
+/* « Par page » ne contient que des nombres : il n'a pas besoin de la largeur d'un champ de tri. */
+.filters app-page-size .select { min-width: 9rem; }
 /* Panneau dépliant (un formulaire que l'on ouvre au besoin) : le résumé est le titre, le chevron dit l'état. */
 .panel > summary { display: flex; align-items: center; gap: var(--space-10); min-height: var(--tap-min); cursor: pointer; list-style: none; }
 .panel > summary::-webkit-details-marker { display: none; }

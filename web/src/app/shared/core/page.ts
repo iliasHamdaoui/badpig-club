@@ -37,19 +37,30 @@ export class ListState {
   readonly sort: WritableSignal<string>;
   readonly direction: WritableSignal<SortDirection>;
   readonly page = signal(1);
+  /** How many rows a page holds; the API refuses more than 100. */
+  readonly pageSize: WritableSignal<number>;
   /** The query to send to the API; changes when the search, the sort or the page change. */
   readonly query: Signal<ListQuery>;
 
   constructor(defaultSort: string, defaultDirection: SortDirection = 'asc', pageSize = 25) {
     this.sort = signal(defaultSort);
     this.direction = signal(defaultDirection);
+    this.pageSize = signal(pageSize);
     this.query = computed(() => ({
       search: this.search(),
       sort: this.sort(),
       direction: this.direction(),
       page: this.page(),
-      pageSize,
+      pageSize: this.pageSize(),
     }));
+  }
+
+  /** Changes how many rows a page holds and goes back to the first one. */
+  setPageSize(size: number): void {
+    if (size !== this.pageSize()) {
+      this.pageSize.set(size);
+      this.page.set(1);
+    }
   }
 
   setSearch(text: string): void {

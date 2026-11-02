@@ -135,3 +135,23 @@ export class Pager {
   readonly totalCount = input.required<number>();
   readonly pageChange = output<number>();
 }
+
+/** How many rows a page holds. Sits in the filters row, next to the search and the sort. */
+@Component({
+  selector: 'app-page-size',
+  template: `
+    <div class="field">
+      <label class="label" [for]="id">Par page</label>
+      <select class="select input" [id]="id" (change)="state().setPageSize(+$any($event.target).value)">
+        @for (size of sizes; track size) {
+          <option [value]="size" [selected]="state().pageSize() === size">{{ size }}</option>
+        }
+      </select>
+    </div>
+  `,
+})
+export class PageSize {
+  readonly state = input.required<ListState>();
+  protected readonly sizes = [10, 25, 50, 100];
+  protected readonly id = `page-size-${Math.random().toString(36).slice(2, 8)}`;
+}

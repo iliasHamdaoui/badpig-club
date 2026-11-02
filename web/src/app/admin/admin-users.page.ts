@@ -3,7 +3,7 @@ import { AdminUser } from '../shared/core/admin-user';
 import { ListState, Page } from '../shared/core/page';
 import { AdminActivity } from '../shared/infrastructure/admin-activity';
 import { UsersDirectory } from '../shared/infrastructure/users-directory';
-import { Pager, SearchBox, SortHeader, SortSelect } from '../shared/ui/list-controls';
+import { PageSize, Pager, SearchBox, SortHeader, SortSelect } from '../shared/ui/list-controls';
 import { AccountActions, AccountStatus, InviteUserForm, LicenceField } from '../modules/accounts';
 import { BoardActions, BoardApi, TitleDef, TitleSelect } from '../modules/board';
 import { MembershipActions, MembershipStatus } from '../modules/memberships';
@@ -17,7 +17,7 @@ import { Crumb, PageHead } from '../shared/ui/page-head';
 @Component({
   selector: 'app-admin-users',
   host: { class: 'bleed' },
-  imports: [SearchBox, SortHeader, SortSelect, Pager, InviteUserForm, AccountStatus, AccountActions, LicenceField, MembershipStatus, MembershipActions, BoardActions, TitleSelect, MenuDetails, PageHead],
+  imports: [SearchBox, SortHeader, SortSelect, Pager, PageSize, InviteUserForm, AccountStatus, AccountActions, LicenceField, MembershipStatus, MembershipActions, BoardActions, TitleSelect, MenuDetails, PageHead],
   providers: [AdminActivity],
   template: `
     <main class="container stack stack-l" style="padding-block: var(--space-30) var(--space-60)">
@@ -45,9 +45,10 @@ import { Crumb, PageHead } from '../shared/ui/page-head';
       </details>
 
       <div class="list-tools stack stack-s">
-        <div class="cols cols-2" style="align-items: end">
+        <div class="filters">
           <app-search-box label="Nom, e-mail ou licence" (searched)="list.setSearch($event)" />
           <app-sort-select [state]="list" [fields]="sortFields" />
+          <app-page-size [state]="list" />
         </div>
         <div class="row" style="--row-gap: var(--space-10)">
           @for (filter of groupFilters; track filter.value) {

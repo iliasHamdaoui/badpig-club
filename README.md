@@ -40,7 +40,7 @@ api/
 - Use cases are grouped by actor: `Administration` = administrative operations of the board, `Profile` = what a person does on their own account. A module that needs an audit log defines its own; today `IAdministrationAudit` (table `administration_audit_log`) records every board operation, memberships included. JSON is camelCase by default.
 - A feature never depends on the `Infrastructure` folder (only on `Core`, `Shared` and its own types); one action = one feature.
 - Cohesion: anything used by a single use case (models, audit constants, e-mails, enumerations) lives in its folder; `Core`/`Infrastructure` only hold what is shared between several use cases or called by another module.
-- Clock: `IDateTimeProvider` (never `DateTime.UtcNow`). Lists: `?search=&sort=&direction=&page=&pageSize=` and the response `{ items, page, pageSize, totalCount, totalPages }` (`admin/users`, `admin/titles`, `admin/audit-log`).
+- Clock: `IDateTimeProvider` (never `DateTime.UtcNow`). Lists: `?search=&sort=&direction=&page=&pageSize=` and the response `{ items, page, pageSize, totalCount, totalPages }` (`admin/users`, `admin/titles`, `admin/audit-log`). `pageSize` is 25 by default and 100 at most; the site lets the person pick 10, 25, 50 or 100.
 - Every use case lives in `Features/<UseCaseName>/` (its own namespace): `…Endpoint` (thin HTTP controller), `…Handler` (handles the request), `…Request` / `…Response` (models). The OpenAPI document (native library) is served on `/api/v1/openapi/v1.json` for the board. Routes and JSON fields are the contract with the website (the `*.api.ts` services of the website modules, in `web/src/app/modules/*/infrastructure/`).
 - Account deletion: each module erases its own data (`IAccountErasure`).
 
