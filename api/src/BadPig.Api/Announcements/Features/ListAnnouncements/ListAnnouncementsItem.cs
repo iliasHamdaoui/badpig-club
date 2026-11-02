@@ -16,6 +16,8 @@ namespace BadPig.Announcements.Features.ListAnnouncements;
 /// <param name="LikeCount">Number of likes; null for a visitor (likes are for the members).</param>
 /// <param name="LikedByMe">True when the signed-in member liked it.</param>
 /// <param name="AuthorName">Name of the author; only filled for the board, null for everybody else.</param>
+/// <param name="PreviewHtml">Beginning of the content with its formatting (titles, lists, emphasis), without links; empty when there is no text.</param>
+/// <param name="HasMore">True when the content goes on after the preview (the card then offers to read more).</param>
 public sealed record ListAnnouncementsItem(
     string Id,
     string Title,
@@ -31,4 +33,6 @@ public sealed record ListAnnouncementsItem(
     bool IsExpired,
     int? LikeCount,
     bool LikedByMe,
-    string? AuthorName);
+    string? AuthorName,
+    string PreviewHtml,
+    bool HasMore);

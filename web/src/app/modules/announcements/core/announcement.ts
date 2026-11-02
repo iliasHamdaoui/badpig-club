@@ -9,6 +9,10 @@ export interface AnnouncementItem {
   id: string;
   title: string;
   summary: string;
+  /** The beginning of the text with its formatting, without links (empty when there is no text). */
+  previewHtml: string;
+  /** True when the text goes on after the preview: the card offers to read more. */
+  hasMore: boolean;
   kind: AnnouncementKind;
   form: AnnouncementForm;
   isPublished: boolean;

@@ -156,4 +156,34 @@ public sealed class ListAnnouncementsTests(ApiFixture fixture) : IntegrationTest
         Assert.Single(page.Items);
         Assert.Equal(3, page.TotalCount);
     }
+
+    [Fact]
+    public async Task Should_ReturnAFormattedPreviewWithoutLinks_When_TheTextHasRichFormatting()
+    {
+        var board = GivenBoardMember();
+        await GivenAnnouncementAsync(board, "Tournoi", "public", published: true,
+            bodyHtml: "<h2>Quand ?</h2><ul><li>Le 25 novembre</li></ul><p>Infos sur <a href=\"https://exemple.fr\">Badnet</a></p>");
+
+        var item = Assert.Single(await AnnouncementsAsync(null));
+
+        Assert.Contains("<h2>Quand ?</h2>", item.PreviewHtml);
+        Assert.Contains("<li>Le 25 novembre</li>", item.PreviewHtml);
+        Assert.Contains("Badnet", item.PreviewHtml);
+        Assert.DoesNotContain("<a", item.PreviewHtml);
+        Assert.False(item.HasMore);
+    }
+
+    [Fact]
+    public async Task Should_CutThePreviewBetweenTwoBlocksAndFlagIt_When_TheTextIsLong()
+    {
+        var board = GivenBoardMember();
+        await GivenAnnouncementAsync(board, "Long", "public", published: true,
+            bodyHtml: $"<p>{new string('A', 300)}</p><p>{new string('B', 300)}</p><p>{new string('C', 300)}</p>");
+
+        var item = Assert.Single(await AnnouncementsAsync(null));
+
+        Assert.Contains(new string('A', 300), item.PreviewHtml);
+        Assert.DoesNotContain("B", item.PreviewHtml);
+        Assert.True(item.HasMore);
+    }
 }

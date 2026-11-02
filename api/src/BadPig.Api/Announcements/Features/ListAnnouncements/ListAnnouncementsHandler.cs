@@ -8,7 +8,7 @@ namespace BadPig.Announcements.Features.ListAnnouncements;
 
 /// <summary>The announcements the reader is allowed to see: pinned first, then by publication date.</summary>
 internal sealed class ListAnnouncementsHandler(IValidator<ListAnnouncementsRequest> validator, IUserContext currentUser,
-    AnnouncementViewer viewer, AppDbContext db) : IHandler<ListAnnouncementsRequest, PagedResponse<ListAnnouncementsItem>>
+    AnnouncementViewer viewer, IRichText richText, AppDbContext db) : IHandler<ListAnnouncementsRequest, PagedResponse<ListAnnouncementsItem>>
 {
     public async Task<Result<PagedResponse<ListAnnouncementsItem>>> HandleAsync(ListAnnouncementsRequest request, CancellationToken ct)
     {
@@ -50,15 +50,23 @@ internal sealed class ListAnnouncementsHandler(IValidator<ListAnnouncementsReque
         var likeCounts = await LikeCountsAsync(audience, ids, ct);
         var likedByMe = await LikedByMeAsync(audience, ids, ct);
 
-        return page.Map(a => new ListAnnouncementsItem(
-            a.Id.ToString(), a.Title, a.Summary, a.Kind, a.Form, a.IsPublished, a.IsPinned, a.PublishedAt,
-            a.Files.FirstOrDefault(f => f.Role == AnnouncementFileRoles.Poster)?.Id.ToString(),
-            a.Files.Count(f => f.Role == AnnouncementFileRoles.Attachment),
-            a.ExpiresOn, AnnouncementExpiry.IsExpired(a.ExpiresOn, viewer.Today),
-            audience == AnnouncementAudience.Visitor ? null : likeCounts.GetValueOrDefault(a.Id),
-            likedByMe.Contains(a.Id),
-            audience == AnnouncementAudience.Board ? a.AuthorName : null));
+        return page.Map(a =>
+        {
+            var preview = richText.ToPreview(a.BodyHtml, PreviewLength);
+            return new ListAnnouncementsItem(
+                a.Id.ToString(), a.Title, a.Summary, a.Kind, a.Form, a.IsPublished, a.IsPinned, a.PublishedAt,
+                a.Files.FirstOrDefault(f => f.Role == AnnouncementFileRoles.Poster)?.Id.ToString(),
+                a.Files.Count(f => f.Role == AnnouncementFileRoles.Attachment),
+                a.ExpiresOn, AnnouncementExpiry.IsExpired(a.ExpiresOn, viewer.Today),
+                audience == AnnouncementAudience.Visitor ? null : likeCounts.GetValueOrDefault(a.Id),
+                likedByMe.Contains(a.Id),
+                audience == AnnouncementAudience.Board ? a.AuthorName : null,
+                preview.Html, preview.IsTruncated);
+        });
     }
+
+    // How much a card shows before "read more" (a text budget: characters plus a cost per block, see IRichText.ToPreview).
+    private const int PreviewLength = 450;
 
     // Dates are listed from the most recent; a title from A to Z.
     private static bool IsSortedByDate(ListAnnouncementsRequest request) => !string.Equals(request.Sort, "title", StringComparison.OrdinalIgnoreCase);

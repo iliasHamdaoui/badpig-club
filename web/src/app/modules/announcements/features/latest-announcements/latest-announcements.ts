@@ -32,11 +32,9 @@ import { AnnouncementsApi } from '../../infrastructure/announcements.api';
       <!-- Same card as the announcements page: in the cards layout, news-list turns the rows into cards on a wide screen. -->
       <div [class]="layout() === 'cards' ? 'news-list' : 'stack stack-s'">
         @for (a of items(); track a.id) {
-          <a class="news-row" [routerLink]="['/announcements', a.id]">
+          <a class="news-row" [class.no-image]="!a.posterId" [routerLink]="['/announcements', a.id]">
             @if (a.posterId) {
               <img [src]="api.fileUrl(a.id, a.posterId)" alt="" loading="lazy" />
-            } @else {
-              <span class="placeholder-img" aria-hidden="true">Annonce</span>
             }
             <span class="stack stack-s">
               @if (a.isPinned || a.kind === 'internal' || a.form === 'poll') {
@@ -47,7 +45,10 @@ import { AnnouncementsApi } from '../../infrastructure/announcements.api';
                 </span>
               }
               <span class="news-title">{{ a.title }}</span>
-              @if (a.summary) { <span class="small-text">{{ a.summary }}</span> }
+              @if (a.previewHtml) {
+                <div class="news-preview rich-text" [class.is-cut]="a.hasMore" [innerHTML]="a.previewHtml"></div>
+              }
+              @if (a.hasMore) { <span class="news-more">Lire la suite →</span> }
               <span class="news-meta">
                 @if (a.publishedAt) { <time>{{ date(a.publishedAt) }}</time> }
                 @if (a.authorName) { <span>{{ a.publishedAt ? '· ' : '' }}{{ a.authorName }}</span> }

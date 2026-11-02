@@ -58,11 +58,9 @@ import { Crumb, PageHead } from '../../../../shared/ui/page-head';
         <ul class="news-list" aria-label="Annonces">
           @for (a of announcements().items; track a.id) {
             <li>
-              <a class="news-row" [routerLink]="['/announcements', a.id]">
+              <a class="news-row" [class.no-image]="!a.posterId" [routerLink]="['/announcements', a.id]">
                 @if (a.posterId) {
                   <img [src]="api.fileUrl(a.id, a.posterId)" alt="" loading="lazy" />
-                } @else {
-                  <span class="placeholder-img" aria-hidden="true">Annonce</span>
                 }
                 <span class="stack stack-s">
                   @if (a.isPinned || a.form === 'poll' || a.kind === 'internal' || a.isExpired || !a.isPublished) {
@@ -75,7 +73,10 @@ import { Crumb, PageHead } from '../../../../shared/ui/page-head';
                     </span>
                   }
                   <span class="news-title">{{ a.title }}</span>
-                  <span class="small-text">{{ a.summary }}</span>
+                  @if (a.previewHtml) {
+                    <div class="news-preview rich-text" [class.is-cut]="a.hasMore" [innerHTML]="a.previewHtml"></div>
+                  }
+                  @if (a.hasMore) { <span class="news-more">Lire la suite →</span> }
                   <span class="news-meta">
                     @if (a.publishedAt) { <time>{{ date(a.publishedAt) }}</time> } @else { <span>Non publiée</span> }
                     @if (a.authorName) { <span>· {{ a.authorName }}</span> }

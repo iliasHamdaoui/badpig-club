@@ -66,7 +66,9 @@ public sealed record AnnouncementItemDto(
     string? AuthorName,
     DateOnly ExpiresOn,
     bool IsExpired,
-    string Form);
+    string Form,
+    string PreviewHtml = "",
+    bool HasMore = false);
 
 public sealed record AnnouncementFileDto(string Id, string FileName, string ContentType, long SizeBytes, bool IsPoster);
 

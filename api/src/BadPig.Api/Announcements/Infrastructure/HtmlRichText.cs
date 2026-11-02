@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.RegularExpressions;
 using BadPig.Announcements.Core;
+using AngleSharp.Dom;
+using AngleSharp.Html.Parser;
 using Ganss.Xss;
 
 namespace BadPig.Announcements.Infrastructure;
@@ -39,6 +41,75 @@ internal sealed partial class HtmlRichText : IRichText
         text = Whitespace().Replace(text, " ").Trim();
         return text.Length <= maxLength ? text : text[..(maxLength - 1)].TrimEnd() + "…";
     }
+
+    public RichTextPreview ToPreview(string html, int maxLength)
+    {
+        var document = new HtmlParser().ParseDocument($"<body>{html}</body>");
+        var body = document.Body!;
+
+        // The card is a link itself: a link inside it would be invalid, so only its text is kept.
+        foreach (var link in body.QuerySelectorAll("a").ToList())
+            link.Replace(document.CreateTextNode(link.TextContent));
+
+        var used = 0;
+        var truncated = false;
+        foreach (var node in body.ChildNodes.ToList())
+        {
+            if (truncated)
+            {
+                body.RemoveChild(node);
+                continue;
+            }
+
+            var length = Weight(node);
+            if (used + length <= maxLength)
+            {
+                used += length;
+                continue;
+            }
+
+            // The first block is kept even when it is long on its own (the card clips it); later ones are cut between two blocks.
+            truncated = true;
+            if (node is IElement { LocalName: "ul" or "ol" } list)
+                KeepItemsWithin(list, maxLength - used, nothingKeptYet: used == 0);
+            else if (used > 0)
+                body.RemoveChild(node);
+        }
+
+        return new RichTextPreview(body.InnerHtml.Trim(), truncated);
+    }
+
+    private static void KeepItemsWithin(IElement list, int budget, bool nothingKeptYet)
+    {
+        var kept = 0;
+        var used = 0;
+        foreach (var item in list.Children.ToList())
+        {
+            used += Weight(item);
+            if (used > budget && (kept > 0 || !nothingKeptYet))
+                list.RemoveChild(item);
+            else
+                kept++;
+        }
+
+        if (kept == 0)
+            list.Remove();
+    }
+
+    /// <summary>
+    /// What a block costs in the preview: its text plus a fixed amount per block (or per list item), so that many short lines
+    /// are cut as well as a few long paragraphs.
+    /// </summary>
+    private static int Weight(INode node)
+    {
+        if (node is IElement { LocalName: "ul" or "ol" } list)
+            return list.Children.Sum(item => Weight(item));
+
+        var text = Whitespace().Replace(node.TextContent, " ").Trim().Length;
+        return text == 0 ? 0 : text + BlockWeight;
+    }
+
+    private const int BlockWeight = 60;
 
     [GeneratedRegex(@"</(p|li|h[2-4]|blockquote|pre)>|<br\s*/?>|<hr\s*/?>", RegexOptions.IgnoreCase)]
     private static partial Regex BlockEnd();
