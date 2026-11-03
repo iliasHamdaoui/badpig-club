@@ -1,5 +1,6 @@
 using FluentValidation;
 using BadPig.Administration.Core;
+using BadPig.Profile.Core;
 using BadPig.Shared.Core;
 using BadPig.Shared.Identity;
 using BadPig.Shared.Persistence;
@@ -12,7 +13,7 @@ namespace BadPig.Administration.Features.ListUsers;
 /// managed by the board; board and admin accounts only by an Admin). Technical accounts of the identity provider stay invisible.
 /// </summary>
 internal sealed class ListUsersHandler(IValidator<ListUsersRequest> validator, IDateTimeProvider clock, 
-    IUserContext currentUser, IIdentityProvider identity, AppDbContext db)
+    IUserContext currentUser, IIdentityProvider identity, IMemberPhotos photos, AppDbContext db)
     : IHandler<ListUsersRequest, PagedResponse<ListUsersItem>>
 {
     public async Task<Result<PagedResponse<ListUsersItem>>> HandleAsync(ListUsersRequest request, CancellationToken ct)
@@ -38,6 +39,7 @@ internal sealed class ListUsersHandler(IValidator<ListUsersRequest> validator, I
         var titles = (await db.BoardTitles.AsNoTracking().Include(b => b.Title).ToListAsync(ct))
             .Where(b => b.Title is not null)
             .ToDictionary(b => b.MemberId.ToString(), b => b.Title!);
+        var photoVersions = await photos.GetVersionsAsync(accounts.Select(a => a.Id).ToList(), ct);
         var boardCount = club.Count(a => a.IsActive && a.IsInGroup(ClubGroup.Board));
 
         var rows = accounts.Select(a =>
@@ -57,6 +59,7 @@ internal sealed class ListUsersHandler(IValidator<ListUsersRequest> validator, I
                 membership.State, membership.SeasonName, membership.Kind ?? invitation?.MembershipKind ?? MembershipKinds.Internal, membership.Amount,
                 membership.ValidatedAt, membership.ValidatedByName,
                 a.IsActive && a.Id != sub, licences.GetValueOrDefault(a.Id), title?.Id.ToString(), title?.Label,
+                photoVersions.TryGetValue(a.Id, out var photoVersion) ? photoVersion : null,
                 !a.IsActive && disabled.TryGetValue(a.Id, out var since) && !AccountRules.IsBoardOrAdmin(a)
                     ? DisabledAccount.DeletionDate(since) : null);
         });

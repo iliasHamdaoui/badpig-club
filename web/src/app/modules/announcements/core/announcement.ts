@@ -124,6 +124,9 @@ export interface CommentQuote {
 /** A comment of the conversation under an announcement (members and board only). */
 export interface AnnouncementComment {
   id: string;
+  authorId: string;
+  /** Version of the author's profile picture, or null when they have none. */
+  authorPhotoVersion: number | null;
   authorName: string;
   text: string;
   createdAt: string;

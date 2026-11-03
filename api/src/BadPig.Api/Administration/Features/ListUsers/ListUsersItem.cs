@@ -24,6 +24,7 @@ namespace BadPig.Administration.Features.ListUsers;
 /// <param name="Licence">Federation licence number (FFBaD) on record, or null.</param>
 /// <param name="TitleId">Identifier of the board title held by the person, or null.</param>
 /// <param name="TitleLabel">Name of the board title held by the person (for example Président), or null.</param>
+/// <param name="PhotoVersion">Version of the profile picture (served at <c>/members/{id}/photo?v={photoVersion}</c>), or null when the person has none.</param>
 /// <param name="AutomaticDeletionAt">Date the disabled account will be deleted automatically, or null (active, board and admin accounts).</param>
 public sealed record ListUsersItem(
     string Id,
@@ -47,4 +48,5 @@ public sealed record ListUsersItem(
     string? Licence,
     string? TitleId,
     string? TitleLabel,
+    long? PhotoVersion,
     DateTimeOffset? AutomaticDeletionAt);

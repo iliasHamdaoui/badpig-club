@@ -6,10 +6,11 @@ import { apiErrorMessage, formatLongDate } from '../../../../shared/core/format'
 import { AuthService } from '../../../../shared/infrastructure/auth.service';
 import { AccountsApi } from '../../infrastructure/accounts.api';
 import { Crumb, PageHead } from '../../../../shared/ui/page-head';
+import { MyPhoto } from '../my-photo/my-photo';
 
 @Component({
   selector: 'app-my-profile',
-  imports: [FormsModule, PageHead],
+  imports: [FormsModule, PageHead, MyPhoto],
   host: { class: 'bleed' },
   template: `
     <main class="container stack stack-l" style="padding-block: var(--space-30) var(--space-60); max-width: 76rem">
@@ -34,6 +35,8 @@ import { Crumb, PageHead } from '../../../../shared/ui/page-head';
             <span>Votre adhésion de la saison passée reste valable pour quelques semaines. Pensez à régler votre cotisation pour la nouvelle saison.</span>
           </p>
         }
+
+        <app-my-photo [accountId]="accountId()" [name]="name" [version]="photoVersion()" (changed)="reloadPhoto()" />
 
         <section class="card stack" aria-labelledby="t-id">
           <h2 id="t-id" class="card-title">Mes coordonnées</h2>
@@ -128,6 +131,8 @@ export class MyProfilePage implements OnInit {
   protected readonly membership = signal<Membership>('valid');
   protected readonly membershipUpToDate = signal(true);
   protected readonly title = signal('');
+  protected readonly accountId = signal('');
+  protected readonly photoVersion = signal<number | null>(null);
   protected licence = '';
   protected readonly savingLicence = signal(false);
   protected readonly licenceMessage = signal('');
@@ -157,6 +162,8 @@ export class MyProfilePage implements OnInit {
       this.title.set(p.title ?? '');
       this.licence = p.licence ?? '';
       this.memberSince.set(p.memberSince);
+      this.accountId.set(p.id);
+      this.photoVersion.set(p.photoVersion);
     } catch {
       this.error.set('Impossible de charger votre profil.');
     } finally {
@@ -179,6 +186,14 @@ export class MyProfilePage implements OnInit {
       this.error.set("L'enregistrement a échoué. Vérifiez les champs et réessayez.");
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  protected async reloadPhoto(): Promise<void> {
+    try {
+      this.photoVersion.set((await this.api.myProfile()).photoVersion);
+    } catch {
+      // The picture is saved anyway: it will show up at the next visit.
     }
   }
 

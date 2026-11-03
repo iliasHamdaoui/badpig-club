@@ -136,11 +136,11 @@ export class SiteHeader {
   protected items(): NavItem[] {
     const items: NavItem[] = [
       { path: '/', label: 'Accueil', exact: true },
-      { path: '/club', label: 'Le club' },
+      { path: '/club', label: 'Le club', exact: true },
       { path: '/announcements', label: 'Annonces' },
     ];
     if (this.auth.isMember() && this.auth.membershipUpToDate() !== false) {
-      items.push({ path: '/interclubs', label: 'Interclubs' }, { path: '/shop', label: 'Boutique' });
+      items.push({ path: '/club/directory', label: 'Trombinoscope' }, { path: '/interclubs', label: 'Interclubs' }, { path: '/shop', label: 'Boutique' });
     }
     if (this.auth.isBoard()) {
       items.push({ path: '/admin', label: 'Administration' });

@@ -8,7 +8,7 @@ public sealed record IdDto(string Id);
 public sealed record PageDto<T>(List<T> Items, int Page, int PageSize, int TotalCount, int TotalPages);
 
 public sealed record ProfileDto(string Id, string Name, string Email, string[] Groups, string Membership, bool MembershipUpToDate, string? Title,
-    string? Licence, DateTimeOffset? MemberSince);
+    string? Licence, DateTimeOffset? MemberSince, long? PhotoVersion = null);
 
 public sealed record SeasonDto(string Id, string Name, string StartsOn, string EndsOn, int GraceDays, decimal InternalFee, decimal ExternalFee, bool IsCurrent);
 
@@ -45,7 +45,10 @@ public sealed record UserDto(
     string? MembershipValidatedByName,
     string? Licence,
     string? TitleId,
-    string? TitleLabel);
+    string? TitleLabel,
+    long? PhotoVersion = null);
+
+public sealed record DirectoryItemDto(string Id, string Name, long PhotoVersion);
 
 public sealed record TitleDto(string Id, string Label, string? HolderId, string? HolderName);
 
@@ -105,7 +108,7 @@ public sealed record PollDto(
 
 public sealed record QuoteDto(string Id, string? AuthorName, string Excerpt, bool IsDeleted);
 
-public sealed record CommentDto(string Id, string AuthorName, string Text, DateTimeOffset CreatedAt, bool IsMine, bool CanDelete, QuoteDto? ReplyTo);
+public sealed record CommentDto(string Id, string AuthorName, string Text, DateTimeOffset CreatedAt, bool IsMine, bool CanDelete, QuoteDto? ReplyTo, string AuthorId = "", long? AuthorPhotoVersion = null);
 
 public sealed record ProductVariantDto(string Id, string Label, int PriceCents, int Quantity, int Reserved, int Available, int LowStockThreshold, bool IsLowStock, bool IsActive);
 

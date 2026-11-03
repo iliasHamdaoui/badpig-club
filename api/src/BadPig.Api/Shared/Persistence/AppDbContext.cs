@@ -17,6 +17,7 @@ public sealed partial class AppDbContext(DbContextOptions<AppDbContext> options)
         ConfigureShop(modelBuilder);
         ConfigureOrders(modelBuilder);
         ConfigureInterclubs(modelBuilder);
+        ConfigureProfile(modelBuilder);
     }
 
     // Implemented by each module (compile error if a module forgets its part).
@@ -25,4 +26,5 @@ public sealed partial class AppDbContext(DbContextOptions<AppDbContext> options)
     private static partial void ConfigureShop(ModelBuilder modelBuilder);
     private static partial void ConfigureOrders(ModelBuilder modelBuilder);
     private static partial void ConfigureInterclubs(ModelBuilder modelBuilder);
+    private static partial void ConfigureProfile(ModelBuilder modelBuilder);
 }

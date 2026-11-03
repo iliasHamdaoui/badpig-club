@@ -1,6 +1,7 @@
 import { Component, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { apiErrorMessage } from '../../../../shared/core/format';
+import { Avatar } from '../../../../shared/ui/avatar';
 import { AnnouncementComment } from '../../core/announcement';
 import { AnnouncementsApi } from '../../infrastructure/announcements.api';
 
@@ -13,7 +14,7 @@ const MAX_LENGTH = 1000;
  */
 @Component({
   selector: 'app-announcement-comments',
-  imports: [FormsModule],
+  imports: [FormsModule, Avatar],
   template: `
     <section class="stack" aria-label="Commentaires">
       <div class="block-head">
@@ -44,7 +45,8 @@ const MAX_LENGTH = 1000;
           @for (c of comments(); track c.id) {
             <li [id]="'comment-' + c.id" [class.mine]="c.isMine" [class.flash]="flashing() === c.id">
               <article class="comment" [class.comment-mine]="c.isMine">
-                <p class="news-meta" style="margin: 0">
+                <p class="news-meta comment-head">
+                  <app-avatar [accountId]="c.authorId" [name]="c.authorName" [version]="c.authorPhotoVersion" size="s" />
                   <strong style="color: var(--color-text)">{{ c.isMine ? 'Vous' : c.authorName }}</strong>
                   <time>{{ when(c.createdAt) }}</time>
                 </p>
@@ -104,6 +106,7 @@ const MAX_LENGTH = 1000;
     /* My own messages lean to the right, like a conversation; the others stay on the left. */
     .mine .comment { background: var(--primary-tint); margin-left: var(--space-40); }
     @container vp (min-width: 76.8rem) { .mine .comment { margin-left: 20%; } .thread li:not(.mine) .comment { margin-right: 20%; } }
+    .comment-head { display: flex; align-items: center; gap: var(--space-10); margin: 0; }
     .text { white-space: pre-wrap; overflow-wrap: anywhere; }
     .quote-link { display: block; width: 100%; text-align: left; border: 0; border-left: 0.3rem solid var(--color-border-strong); cursor: pointer; font: inherit; }
     .quote-link:disabled { cursor: default; }

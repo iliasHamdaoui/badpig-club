@@ -1,4 +1,5 @@
 using BadPig.Administration.Core;
+using BadPig.Profile.Core;
 using BadPig.Shared.Core;
 using BadPig.Shared.Identity;
 
@@ -8,7 +9,7 @@ namespace BadPig.Profile.Features.GetMyProfile;
 /// Profile of the signed-in person (identified by "sub" = account identifier, never by e-mail), completed with
 /// the membership, the board title and the licence number given by the Administration module.
 /// </summary>
-internal sealed class GetMyProfileHandler(IUserContext currentUser, IIdentityProvider identity, IMembershipReader memberships, IBoardInfo board, ILicenceBook licences)
+internal sealed class GetMyProfileHandler(IUserContext currentUser, IIdentityProvider identity, IMembershipReader memberships, IBoardInfo board, ILicenceBook licences, IMemberPhotos photos)
     : IHandler<GetMyProfileRequest, GetMyProfileResponse>
 {
     public async Task<Result<GetMyProfileResponse>> HandleAsync(GetMyProfileRequest request, CancellationToken ct)
@@ -23,7 +24,9 @@ internal sealed class GetMyProfileHandler(IUserContext currentUser, IIdentityPro
         var upToDate = membership.State != MembershipStates.ToValidate || AccountRules.IsBoardOrAdmin(account);
         var title = await board.GetTitleAsync(account.Id, ct);
         var licence = await licences.GetAsync(account.Id, ct);
+        var photoVersions = await photos.GetVersionsAsync([account.Id], ct);
         return new GetMyProfileResponse(account.Id, account.Username, account.Name, account.Email, account.Groups,
-            membership.State, upToDate, title?.Label, licence, membership.MemberSince);
+            membership.State, upToDate, title?.Label, licence, membership.MemberSince,
+            photoVersions.TryGetValue(account.Id, out var photoVersion) ? photoVersion : null);
     }
 }

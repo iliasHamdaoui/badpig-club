@@ -16,4 +16,6 @@ export interface Profile {
   licence: string | null;
   /** Day the person joined the club (their first validated membership), or null. */
   memberSince: string | null;
+  /** Version of the profile picture, or null when there is none. */
+  photoVersion: number | null;
 }

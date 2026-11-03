@@ -177,4 +177,16 @@ public sealed class ListUsersTests(ApiFixture fixture) : IntegrationTest(fixture
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Should_ReturnThePictureVersion_When_ThePersonHasAPicture()
+    {
+        var board = GivenBoardMember();
+        var member = await GivenAnAdherentAsync(board);
+        var version = await GivenPhotoAsync(member);
+
+        var user = await UserAsync(board, member);
+
+        Assert.Equal(version, user.PhotoVersion);
+    }
 }

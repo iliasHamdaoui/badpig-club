@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { MembershipKind } from '../../../shared/core/membership';
 import { API } from '../../../shared/infrastructure/api';
+import { Page, ListQuery, listParams } from '../../../shared/core/page';
+import { DirectoryPerson } from '../core/directory-person';
 import { Profile } from '../core/profile';
 
 @Injectable({ providedIn: 'root' })
@@ -20,6 +22,22 @@ export class AccountsApi {
   /** Records my federation licence number; an empty value removes the one on record. */
   setMyLicence(number: string): Promise<void> {
     return firstValueFrom(this.http.put<void>(`${API}/me/licence`, { number }));
+  }
+
+  /** Sets (or replaces) my profile picture: a square JPEG made by the cropper. */
+  setMyPhoto(picture: Blob): Promise<void> {
+    const form = new FormData();
+    form.append('file', picture, 'photo.jpg');
+    return firstValueFrom(this.http.put<void>(`${API}/me/photo`, form));
+  }
+
+  removeMyPhoto(): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${API}/me/photo`));
+  }
+
+  /** The club directory (trombinoscope): the members who put a picture. Members with an up-to-date membership only. */
+  listDirectory(query: ListQuery): Promise<Page<DirectoryPerson>> {
+    return firstValueFrom(this.http.get<Page<DirectoryPerson>>(`${API}/club/directory`, { params: listParams(query) }));
   }
 
   deleteMyAccount(): Promise<void> {

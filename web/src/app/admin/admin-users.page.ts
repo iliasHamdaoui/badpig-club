@@ -3,6 +3,7 @@ import { AdminUser } from '../shared/core/admin-user';
 import { ListState, Page } from '../shared/core/page';
 import { AdminActivity } from '../shared/infrastructure/admin-activity';
 import { UsersDirectory } from '../shared/infrastructure/users-directory';
+import { Avatar } from '../shared/ui/avatar';
 import { PageSize, Pager, SearchBox, SortHeader, SortSelect } from '../shared/ui/list-controls';
 import { AccountActions, AccountStatus, InviteUserForm, LicenceField } from '../modules/accounts';
 import { BoardActions, BoardApi, TitleDef, TitleSelect } from '../modules/board';
@@ -17,7 +18,7 @@ import { Crumb, PageHead } from '../shared/ui/page-head';
 @Component({
   selector: 'app-admin-users',
   host: { class: 'bleed' },
-  imports: [SearchBox, SortHeader, SortSelect, Pager, PageSize, InviteUserForm, AccountStatus, AccountActions, LicenceField, MembershipStatus, MembershipActions, BoardActions, TitleSelect, MenuDetails, PageHead],
+  imports: [Avatar, SearchBox, SortHeader, SortSelect, Pager, PageSize, InviteUserForm, AccountStatus, AccountActions, LicenceField, MembershipStatus, MembershipActions, BoardActions, TitleSelect, MenuDetails, PageHead],
   providers: [AdminActivity],
   template: `
     <main class="container stack stack-l" style="padding-block: var(--space-30) var(--space-60)">
@@ -88,8 +89,13 @@ import { Crumb, PageHead } from '../shared/ui/page-head';
             @for (u of users().items; track u.id) {
               <tr>
                 <td class="cell-main" data-label="Nom">
-                  <strong>{{ u.name }}</strong>
-                  <span class="small-text" style="overflow-wrap: anywhere">{{ u.email }}</span>
+                  <span class="person">
+                    <app-avatar [accountId]="u.id" [name]="u.name" [version]="u.photoVersion" size="s" />
+                    <span class="person-text">
+                      <strong>{{ u.name }}</strong>
+                      <span class="small-text" style="overflow-wrap: anywhere">{{ u.email }}</span>
+                    </span>
+                  </span>
                 </td>
                 <td data-label="Groupes et titre">
                   <span class="stack stack-s" style="justify-items: start">
@@ -127,6 +133,8 @@ import { Crumb, PageHead } from '../shared/ui/page-head';
     </main>
   `,
   styles: `
+    .person { display: flex; align-items: center; gap: var(--space-10); }
+    .person-text { display: grid; min-width: 0; }
     summary { cursor: pointer; }
     .list-tools { display: grid; gap: var(--space-10); }
     /* Column widths, so that an e-mail is not cut in the middle of a word and the actions always start at the same place. */

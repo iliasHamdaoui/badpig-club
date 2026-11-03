@@ -183,6 +183,16 @@ public abstract class IntegrationTest(ApiFixture fixture) : IAsyncLifetime
         return new MultipartFormDataContent { { file, "file", fileName } };
     }
 
+    // --- Profile pictures ---
+
+    /// <summary>The person puts a profile picture (a small PNG) and its version is returned.</summary>
+    protected async Task<long> GivenPhotoAsync(Person who, int length = 64)
+    {
+        var response = await As(who).PutAsync($"{V1}/me/photo", FileForm("moi.png", PngBytes(length), "image/png"), CancellationToken);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        return (await ReadAsync<ProfileDto>(await As(who).GetAsync($"{V1}/me", CancellationToken))).PhotoVersion!.Value;
+    }
+
     // --- Situations prepared through the API ---
 
     /// <summary>Creates a season (default: 2026-2027, fees 60 € for club licence holders and 30 € for external members) and returns its identifier.</summary>

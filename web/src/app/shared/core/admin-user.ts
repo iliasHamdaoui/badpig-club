@@ -33,6 +33,8 @@ export interface AdminUser {
   licence: string | null;
   titleId: string | null;
   titleLabel: string | null;
+  /** Version of the profile picture, or null when there is none. */
+  photoVersion: number | null;
   /** Disabled account: planned date of the automatic deletion. */
   automaticDeletionAt: string | null;
 }

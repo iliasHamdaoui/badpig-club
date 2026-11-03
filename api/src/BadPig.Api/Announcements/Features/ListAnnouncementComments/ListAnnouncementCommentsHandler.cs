@@ -1,4 +1,5 @@
 using BadPig.Announcements.Core;
+using BadPig.Profile.Core;
 using BadPig.Shared.Core;
 using BadPig.Shared.Persistence;
 using FluentValidation;
@@ -8,7 +9,7 @@ namespace BadPig.Announcements.Features.ListAnnouncementComments;
 
 /// <summary>The comments of an announcement that the reader can see (members and board only), oldest first by default; an answer carries a quote of the comment it answers.</summary>
 internal sealed class ListAnnouncementCommentsHandler(IValidator<ListAnnouncementCommentsRequest> validator, IUserContext currentUser,
-    AnnouncementViewer viewer, AppDbContext db) : IHandler<ListAnnouncementCommentsRequest, PagedResponse<ListAnnouncementCommentsItem>>
+    AnnouncementViewer viewer, IMemberPhotos photos, AppDbContext db) : IHandler<ListAnnouncementCommentsRequest, PagedResponse<ListAnnouncementCommentsItem>>
 {
     private const int QuoteLength = 120;
 
@@ -34,8 +35,9 @@ internal sealed class ListAnnouncementCommentsHandler(IValidator<ListAnnouncemen
         var ordered = request.IsDescending() ? query.OrderByDescending(c => c.CreatedAt) : query.OrderBy(c => c.CreatedAt);
         var page = await ordered.ThenBy(c => c.Id).ToPageAsync(request, ct);
         var quoted = await QuotedCommentsAsync(page.Items, announcementId, ct);
+        var photoVersions = await photos.GetVersionsAsync(page.Items.Select(c => c.AuthorId.ToString()).Distinct().ToList(), ct);
         return page.Map(c => new ListAnnouncementCommentsItem(
-            c.Id.ToString(), c.AuthorName, c.Text, c.CreatedAt, IsMine(c), CanDelete(c), QuoteOf(c, quoted)));
+            c.Id.ToString(), c.AuthorId.ToString(), c.AuthorName, photoVersions.TryGetValue(c.AuthorId.ToString(), out var photoVersion) ? photoVersion : null, c.Text, c.CreatedAt, IsMine(c), CanDelete(c), QuoteOf(c, quoted)));
     }
 
     // The quoted comments may be on another page, or gone.

@@ -1,6 +1,7 @@
 using BadPig.Administration;
 using BadPig.Announcements;
 using BadPig.Interclubs;
+using BadPig.Profile;
 using BadPig.Shared.Identity;
 using BadPig.Shared.Mailbox;
 using BadPig.Shared.Payments;
@@ -63,6 +64,7 @@ builder.Services.AddAnnouncementsModule(configuration);
 builder.Services.AddShopModule(configuration);
 builder.Services.AddOrdersModule(configuration);
 builder.Services.AddInterclubsModule();
+builder.Services.AddProfileModule();
 
 var app = builder.Build();
 

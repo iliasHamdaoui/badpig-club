@@ -58,6 +58,9 @@ const MAP_LINK = 'https://www.openstreetmap.org/search?query=Rue%20du%20Coll%C3%
                 <svg class="ic ic-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"></path></svg>
               </a>
             </p>
+            @if (auth.isMember()) {
+              <p><a class="link-action" routerLink="/club/directory">Voir le trombinoscope du club</a></p>
+            }
           </aside>
         </div>
       </section>

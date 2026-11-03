@@ -193,4 +193,23 @@ public sealed class ListAnnouncementCommentsTests(ApiFixture fixture) : Integrat
         Assert.Null(comment.ReplyTo.AuthorName);
         Assert.Equal("", comment.ReplyTo.Excerpt);
     }
+
+    [Fact]
+    public async Task Should_ReturnTheAuthorPictureVersion_When_TheAuthorHasAPicture()
+    {
+        var board = GivenBoardMember();
+        var withPicture = await GivenAnAdherentAsync(board, "Marie Adherente");
+        var without = await GivenAnAdherentAsync(board, "Jean Sansphoto");
+        var id = await GivenAnnouncementAsync(board, published: true);
+        var version = await GivenPhotoAsync(withPicture);
+        await GivenCommentAsync(withPicture, id, "Avec photo");
+        await GivenCommentAsync(without, id, "Sans photo");
+
+        var comments = await CommentsAsync(board, id);
+
+        var first = comments.Single(c => c.Text == "Avec photo");
+        Assert.Equal(withPicture.Id, first.AuthorId);
+        Assert.Equal(version, first.AuthorPhotoVersion);
+        Assert.Null(comments.Single(c => c.Text == "Sans photo").AuthorPhotoVersion);
+    }
 }

@@ -11,6 +11,7 @@ namespace BadPig.Profile.Features.GetMyProfile;
 /// <param name="Title">Board title held by the person (for example Président), or null.</param>
 /// <param name="Licence">Federation licence number (FFBaD) on record, or null.</param>
 /// <param name="MemberSince">Day the person joined the club (their first validated membership), or null.</param>
+/// <param name="PhotoVersion">Version of the profile picture (the picture is served at <c>/members/{id}/photo?v={photoVersion}</c>), or null when the person has none.</param>
 public sealed record GetMyProfileResponse(
     string Id,
     string Username,
@@ -21,4 +22,5 @@ public sealed record GetMyProfileResponse(
     bool MembershipUpToDate,
     string? Title,
     string? Licence,
-    DateTimeOffset? MemberSince);
+    DateTimeOffset? MemberSince,
+    long? PhotoVersion);
