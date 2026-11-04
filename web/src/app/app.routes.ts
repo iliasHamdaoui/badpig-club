@@ -8,6 +8,7 @@ import { membershipsRoutes } from './modules/memberships';
 import { interclubsRoutes } from './modules/interclubs';
 import { ordersRoutes } from './modules/orders';
 import { shopRoutes } from './modules/shop';
+import { usageRoutes } from './modules/usage';
 
 // The host assembles the routes of the modules.
 // Guards are only a display convenience: the real protection is in the API.
@@ -23,6 +24,7 @@ export const routes: Routes = [
   ...interclubsRoutes,
   ...ordersRoutes,
   ...shopRoutes,
+  ...usageRoutes,
   { path: 'admin', canActivate: [boardGuard], loadComponent: () => import('./admin/admin-home.page').then((m) => m.AdminHomePage) },
   { path: 'admin/users', canActivate: [boardGuard], loadComponent: () => import('./admin/admin-users.page').then((m) => m.AdminUsersPage) },
   { path: '**', redirectTo: '' },

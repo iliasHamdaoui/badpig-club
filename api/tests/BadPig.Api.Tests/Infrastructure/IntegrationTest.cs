@@ -193,6 +193,18 @@ public abstract class IntegrationTest(ApiFixture fixture) : IAsyncLifetime
         return (await ReadAsync<ProfileDto>(await As(who).GetAsync($"{V1}/me", CancellationToken))).PhotoVersion!.Value;
     }
 
+    // --- Usage statistics ---
+
+    /// <summary>The person reports the use of a page (a view that stayed <paramref name="seconds"/> seconds, unless <paramref name="views"/> is 0).</summary>
+    protected async Task GivenPageVisitAsync(Person who, string path, int seconds = 10, int views = 1)
+    {
+        var response = await As(who).PostAsJsonAsync($"{V1}/usage/visits", new { path, views, seconds }, CancellationToken);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    protected async Task<List<UsageItemDto>> UsageAsync(Person board, string query = "") =>
+        (await ReadAsync<PageDto<UsageItemDto>>(await As(board).GetAsync($"{V1}/admin/usage{query}", CancellationToken))).Items;
+
     // --- Situations prepared through the API ---
 
     /// <summary>Creates a season (default: 2026-2027, fees 60 € for club licence holders and 30 € for external members) and returns its identifier.</summary>

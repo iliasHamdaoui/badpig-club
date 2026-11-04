@@ -126,6 +126,10 @@ import { Crumb, PageHead } from '../shared/ui/page-head';
             <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
             <span>Actions du bureau<small>Qui a fait quoi, quand</small></span>
           </a>
+          <a class="tile" routerLink="/admin/usage">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
+            <span>Usage du site<small>Pages les plus consultées, temps passé</small></span>
+          </a>
         </div>
       </section>
     </main>

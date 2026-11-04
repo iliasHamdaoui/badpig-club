@@ -156,3 +156,9 @@ public sealed record PlayerDto(string AccountId, string Name);
 public sealed record SetDto(int Club, int Opponent);
 
 public sealed record MatchDto(string Slot, List<PlayerDto> Players, List<SetDto> Sets, string? Ending, string? Withdrawn, string? Outcome);
+
+public sealed record UsageItemDto(string Path, int Views, long TotalSeconds, int AverageSeconds);
+
+public sealed record UsageTrendDayDto(string Date, int Views, long Seconds);
+
+public sealed record UsageTrendDto(List<UsageTrendDayDto> Days);
